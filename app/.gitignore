@@ -1,0 +1,6 @@
+.gradle/
+.gradle-user-home/
+local.properties
+.idea/workspace.xml
+build/
+**/build/
