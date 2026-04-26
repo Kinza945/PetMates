@@ -11,7 +11,10 @@ import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
 object HttpClientFactory {
-    fun create(config: SupabaseConfig): HttpClient {
+    fun create(
+        config: SupabaseConfig,
+        authTokenProvider: AuthTokenProvider = EmptyAuthTokenProvider,
+    ): HttpClient {
         // Ktor-OkHttp engine uses OkHttp under the hood; tune timeouts here.
         val okHttp = OkHttpClient.Builder()
             .connectTimeout(15, TimeUnit.SECONDS)
@@ -29,13 +32,17 @@ object HttpClientFactory {
             }
 
             install(DefaultRequest) {
-                // Supabase PostgREST expects these headers.
+                /*
+                 * Supabase PostgREST requires apikey for every request.
+                 * Authorization uses the real user JWT when auth is connected;
+                 * until then anon key keeps read-only/public calls working.
+                 */
                 if (config.anonKey.isNotBlank()) {
                     header("apikey", config.anonKey)
-                    header(HttpHeaders.Authorization, "Bearer ${config.anonKey}")
+                    val accessToken = authTokenProvider.currentAccessToken()
+                    header(HttpHeaders.Authorization, "Bearer ${accessToken ?: config.anonKey}")
                 }
             }
         }
     }
 }
-

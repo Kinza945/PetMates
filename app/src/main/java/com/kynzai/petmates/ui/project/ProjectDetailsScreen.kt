@@ -1,5 +1,6 @@
 package com.kynzai.petmates.ui.project
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,8 +26,14 @@ import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
 @Composable
 fun ProjectDetailsScreen(
     projectId: String? = null,
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    isAuthorized: Boolean = true,
+    onAuthRequested: () -> Unit = {},
+    onCreateVacancyClick: (String) -> Unit = {},
+    onInviteUserClick: (String) -> Unit = {},
 ) {
+    val context = LocalContext.current
+
     Scaffold(
         containerColor = PetMatesBackground,
         topBar = {
@@ -69,6 +77,45 @@ fun ProjectDetailsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            if (projectId != null && isAuthorized) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { onCreateVacancyClick(projectId) },
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Добавить вакансию", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                    OutlinedButton(
+                        onClick = { onInviteUserClick(projectId) },
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = PetMatesPrimary)
+                    ) {
+                        Text("Пригласить", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (projectId != null && !isAuthorized) {
+                Button(
+                    onClick = onAuthRequested,
+                    modifier = Modifier.fillMaxWidth().height(44.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Авторизоваться", fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
             Text("Создатель: @kynzai", fontSize = 14.sp, color = PetMatesTextSecondary)
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -100,7 +147,13 @@ fun ProjectDetailsScreen(
                     Text("Нужно нарисовать логотип и доработать макеты мобильного приложения.", fontSize = 14.sp, color = PetMatesTextPrimary)
                     Spacer(modifier = Modifier.height(12.dp))
                     Button(
-                        onClick = { /* Откликнуться */ },
+                        onClick = {
+                            if (!isAuthorized) {
+                                onAuthRequested()
+                            } else {
+                                Toast.makeText(context, "Отклик отправлен (мок)", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary),
                         shape = RoundedCornerShape(8.dp)
                     ) {

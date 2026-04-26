@@ -8,5 +8,7 @@ interface ResponseRepository {
     suspend fun getResponsesByVacancy(vacancyId: UUID): Result<List<Response>>
     suspend fun createResponse(vacancyId: UUID): Result<Response>
     suspend fun updateResponseStatus(responseId: UUID, status: ResponseStatus): Result<Response>
-}
 
+    suspend fun cancelResponse(responseId: UUID): Result<Unit> =
+        Result.failure(UnsupportedOperationException("cancelResponse is not implemented"))
+}

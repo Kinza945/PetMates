@@ -3,8 +3,11 @@ package com.kynzai.data.repositories
 import com.kynzai.data.remote.JSONArrayObjects
 import com.kynzai.data.remote.SupabaseRestApi
 import com.kynzai.data.remote.dto.UserDto
+import com.kynzai.data.remote.firstObjectFromArray
 import com.kynzai.data.remote.mapper.toDomain
+import com.kynzai.data.remote.toJsonBody
 import com.kynzai.domain.models.User
+import com.kynzai.domain.models.UserProfileUpdate
 import com.kynzai.domain.repositories.UserRepository
 import org.json.JSONArray
 import java.util.UUID
@@ -55,5 +58,13 @@ class UserRepositoryImpl @Inject constructor(
                 .map { UserDto.fromJson(it).toDomain() }
                 .toList()
         }
-}
 
+    override suspend fun updateProfile(update: UserProfileUpdate): Result<User> =
+        api.patchTableJson(
+            table = "users",
+            bodyJson = update.toJsonBody(),
+            query = mapOf("select" to "*")
+        ).mapCatching { raw ->
+            UserDto.fromJson(firstObjectFromArray(raw)).toDomain()
+        }
+}

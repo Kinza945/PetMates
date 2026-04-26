@@ -1,5 +1,6 @@
 package com.kynzai.petmates.ui.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -28,8 +30,12 @@ import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
 @Composable
 fun UserProfileScreen(
     nickname: String? = null,
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    isAuthorized: Boolean,          // ДОБАВИТЬ ЭТО
+    onAuthRequested: () -> Unit,    // ДОБАВИТЬ ЭТО
+    onInviteToProject: (String) -> Unit // ДОБАВИТЬ ЭТО (принимает ID проекта)
 ) {
+    val context = LocalContext.current
     Scaffold(
         containerColor = PetMatesBackground,
         topBar = {
@@ -94,7 +100,9 @@ fun UserProfileScreen(
 
             // Кнопка действия (Если чужой профиль)
             Button(
-                onClick = { /* Пригласить */ },
+                onClick = {
+                    Toast.makeText(context, "Приглашение отправлено (мок)", Toast.LENGTH_SHORT).show()
+                },
                 modifier = Modifier.fillMaxWidth().height(50.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary)

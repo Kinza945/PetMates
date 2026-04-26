@@ -1,5 +1,6 @@
 package com.kynzai.petmates.ui.profile
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -67,7 +69,9 @@ private val ErrorContainer = Color(0xFFFFEBEE)
 private enum class ProfileTab { Info, Activity, Notifications, Settings }
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreen(
+    onCreateProjectClick: () -> Unit = {},
+) {
     // Keeping "current data" as-is (hardcoded), but layout is now mobile-friendly.
     val nickname = "DogI1X"
     val realName = "Гринькин Вадим"
@@ -172,6 +176,19 @@ fun ProfileScreen() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        Button(
+            onClick = onCreateProjectClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+        ) {
+            Text(text = "Создать проект", fontWeight = FontWeight.Bold)
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
         ScrollableTabRow(
             selectedTabIndex = safeTabIndex,
             containerColor = PetMatesSurface,
@@ -224,7 +241,7 @@ fun ProfileScreen() {
                     title = "Активность"
                 )
 
-                ProfileTab.Notifications -> NotificationsTab(modifier = Modifier.fillMaxSize())
+                ProfileTab.Notifications -> NotificationsRoute(modifier = Modifier.fillMaxSize())
                 ProfileTab.Settings -> SettingsTab(accountName = nickname, modifier = Modifier.fillMaxSize())
             }
         }
@@ -341,6 +358,7 @@ fun SettingsTab(
     accountName: String,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
     var oldPassword by rememberSaveable { mutableStateOf("") }
     var newPassword by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
@@ -420,7 +438,9 @@ fun SettingsTab(
 
             item {
                 Button(
-                    onClick = { /* TODO save */ },
+                    onClick = {
+                        Toast.makeText(context, "Изменения сохранены (мок)", Toast.LENGTH_SHORT).show()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -532,6 +552,7 @@ private fun DeleteAccountDialog(
     accountName: String,
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     var name by rememberSaveable { mutableStateOf("") }
     var code by rememberSaveable { mutableStateOf("") }
 
@@ -571,7 +592,10 @@ private fun DeleteAccountDialog(
         },
         confirmButton = {
             Button(
-                onClick = { /* TODO delete */ },
+                onClick = {
+                    Toast.makeText(context, "Удаление аккаунта (мок)", Toast.LENGTH_SHORT).show()
+                    onDismiss()
+                },
                 enabled = name == accountName && code.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = Danger, contentColor = Color.White)
             ) {

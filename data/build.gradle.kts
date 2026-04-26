@@ -2,8 +2,6 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 
 plugins {
     alias(libs.plugins.android.library)
-    id("com.google.devtools.ksp")
-    id("com.google.dagger.hilt.android")
 }
 
 val libsCatalog = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
@@ -22,6 +20,8 @@ android {
         val supabaseAnonKey = providers.gradleProperty("SUPABASE_ANON_KEY").orNull ?: System.getenv("SUPABASE_ANON_KEY") ?: ""
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+        val useMocks = (providers.gradleProperty("USE_MOCKS").orNull ?: System.getenv("USE_MOCKS") ?: "true")
+        buildConfigField("boolean", "USE_MOCKS", useMocks)
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -57,8 +57,8 @@ dependencies {
     implementation(libsCatalog.findLibrary("ktor-client-okhttp").get())
     implementation(libsCatalog.findLibrary("ktor-client-logging").get())
 
+    // Keep Hilt runtime annotations available for @Inject/@Singleton used in this module.
     implementation(libsCatalog.findLibrary("hilt-android").get())
-    add("ksp", libsCatalog.findLibrary("hilt-compiler").get())
 
     implementation(project(":domain"))
 

@@ -1,5 +1,6 @@
 package com.kynzai.petmates.ui.auth
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalContext
 import com.kynzai.petmates.R
 
 private val Primary = Color(0xFF40B4A4)
@@ -60,9 +62,11 @@ private enum class Mode { Login, Register }
 
 @Composable
 fun AuthScreen(
-    onAuthorizedContinue: () -> Unit,
+    onAuthorizedContinue: (nickname: String, email: String) -> Unit,
     onGuestContinue: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     var mode by rememberSaveable { mutableStateOf(Mode.Login) }
 
     var username by rememberSaveable { mutableStateOf("") }
@@ -159,7 +163,9 @@ fun AuthScreen(
                         maxLines = 1,
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.clickable { /* TODO reset password later */ }
+                        modifier = Modifier.clickable {
+                            Toast.makeText(context, "Восстановление пароля скоро появится", Toast.LENGTH_SHORT).show()
+                        }
                     )
                 }
 
@@ -236,7 +242,9 @@ fun AuthScreen(
             }
 
             Button(
-                onClick = onAuthorizedContinue,
+                onClick = {
+                    val resultEmail = if (mode == Mode.Login) "$username@example.com" else email
+                    onAuthorizedContinue(username, resultEmail) },
                 enabled = isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -294,9 +302,27 @@ fun AuthScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SocialCircleButton(iconRes = R.drawable.ic_google)
-                SocialCircleButton(iconRes = R.drawable.ic_github)
-                SocialCircleButton(iconRes = R.drawable.ic_telegram)
+                SocialCircleButton(
+                    iconRes = R.drawable.ic_google,
+                    onClick = {
+                        Toast.makeText(context, "Google вход (мок)", Toast.LENGTH_SHORT).show()
+                        onAuthorizedContinue("Google_User", "google@test.com")
+                    }
+                )
+                SocialCircleButton(
+                    iconRes = R.drawable.ic_github,
+                    onClick = {
+                        Toast.makeText(context, "GitHub вход (мок)", Toast.LENGTH_SHORT).show()
+                        onAuthorizedContinue("Github_User", "github@test.com")
+                    }
+                )
+                SocialCircleButton(
+                    iconRes = R.drawable.ic_telegram,
+                    onClick = {
+                        Toast.makeText(context, "Telegram вход (мок)", Toast.LENGTH_SHORT).show()
+                        onAuthorizedContinue("Github_User", "github@test.com")
+                    }
+                )
 
 
             }

@@ -19,11 +19,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -35,11 +37,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.kynzai.domain.common.LoadState
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
 import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
 import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
+import java.util.UUID
 
 private val Success = Color(0xFF3AC83D)
 private val Danger = Color(0xFFE53935)
@@ -49,95 +54,25 @@ private enum class RequestsTab { Incoming, Outgoing }
 
 enum class OutgoingStatus { Pending, Accepted, Rejected }
 
-data class IncomingRequestUi(
-    val id: String,
-    val fromName: String,
-    val date: String,
-    val text: String,
-)
-
-data class OutgoingRequestUi(
-    val id: String,
-    val projectName: String,
-    val date: String,
-    val text: String,
-    val status: OutgoingStatus,
-)
+@Composable
+fun RequestsRoute(
+    vm: RequestsViewModel = hiltViewModel(),
+) {
+    val state by vm.state.collectAsState()
+    RequestsScreen(
+        state = state,
+        onAccept = vm::accept,
+        onReject = vm::reject,
+    )
+}
 
 @Composable
-fun RequestsScreen() {
+fun RequestsScreen(
+    state: LoadState<RequestsUiModel> = LoadState.Loading,
+    onAccept: (UUID) -> Unit = {},
+    onReject: (UUID) -> Unit = {},
+) {
     var tab by remember { mutableIntStateOf(RequestsTab.Incoming.ordinal) }
-
-    val incoming = listOf(
-        IncomingRequestUi(
-            id = "in_1",
-            fromName = "Clown[???]",
-            date = "20.04.2026",
-            text = "Отклик на роль «Проектировщик информационных систем» в проект «Чат бот семейного ресторана»"
-        ),
-        IncomingRequestUi(
-            id = "in_2",
-            fromName = "DesignMaster",
-            date = "18.04.2026",
-            text = "Отклик на роль «UI/UX дизайнер» в проект «PetMates»"
-        ),
-        IncomingRequestUi(
-            id = "in_3",
-            fromName = "BackendEnjoyer",
-            date = "16.04.2026",
-            text = "Отклик на роль «Backend разработчик» в проект «Task Tracker API»"
-        ),
-        IncomingRequestUi(
-            id = "in_4",
-            fromName = "qa_cat",
-            date = "12.04.2026",
-            text = "Отклик на роль «QA инженер» в проект «PetMates Mobile»"
-        ),
-        IncomingRequestUi(
-            id = "in_5",
-            fromName = "ops_guy",
-            date = "10.04.2026",
-            text = "Отклик на роль «DevOps» в проект «CI для PetMates»"
-        ),
-    )
-
-    val outgoing = listOf(
-        OutgoingRequestUi(
-            id = "out_1",
-            projectName = "Приложение Contacts",
-            date = "14.04.2026",
-            text = "Ваш отклик на роль «Backend девелопер»",
-            status = OutgoingStatus.Pending
-        ),
-        OutgoingRequestUi(
-            id = "out_2",
-            projectName = "Task Tracker",
-            date = "12.04.2026",
-            text = "Ваш отклик на роль «Android разработчик»",
-            status = OutgoingStatus.Accepted
-        ),
-        OutgoingRequestUi(
-            id = "out_3",
-            projectName = "Mobile Design System",
-            date = "09.04.2026",
-            text = "Ваш отклик на роль «Frontend разработчик»",
-            status = OutgoingStatus.Rejected
-        ),
-        OutgoingRequestUi(
-            id = "out_4",
-            projectName = "PetMates Mobile",
-            date = "05.04.2026",
-            text = "Ваш отклик на роль «QA инженер»",
-            status = OutgoingStatus.Pending
-        ),
-        OutgoingRequestUi(
-            id = "out_5",
-            projectName = "Landing PetMates",
-            date = "02.04.2026",
-            text = "Ваш отклик на роль «Frontend-разработчик»",
-            status = OutgoingStatus.Accepted
-        ),
-    )
 
     Column(
         modifier = Modifier
@@ -162,41 +97,61 @@ fun RequestsScreen() {
                 onClick = { tab = RequestsTab.Incoming.ordinal },
                 text = { Text("Входящие") },
                 selectedContentColor = PetMatesPrimary,
-                unselectedContentColor = PetMatesTextSecondary
+                unselectedContentColor = PetMatesTextSecondary,
             )
             Tab(
                 selected = tab == RequestsTab.Outgoing.ordinal,
                 onClick = { tab = RequestsTab.Outgoing.ordinal },
                 text = { Text("Исходящие") },
                 selectedContentColor = PetMatesPrimary,
-                unselectedContentColor = PetMatesTextSecondary
+                unselectedContentColor = PetMatesTextSecondary,
             )
         }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            when (RequestsTab.entries.getOrNull(tab) ?: RequestsTab.Incoming) {
-                RequestsTab.Incoming -> {
-                    items(incoming, key = { it.id }) { item ->
-                        IncomingRequestCard(item)
-                    }
-                }
-                RequestsTab.Outgoing -> {
-                    items(outgoing, key = { it.id }) { item ->
-                        OutgoingRequestCard(item)
+        when (state) {
+            is LoadState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PetMatesPrimary)
+            }
+
+            is LoadState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Не удалось загрузить заявки", color = PetMatesTextSecondary)
+            }
+
+            is LoadState.Data -> {
+                val data = state.value
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    if (tab == RequestsTab.Incoming.ordinal) {
+                        items(data.incoming, key = { it.responseId }) { item ->
+                            IncomingRequestCard(
+                                item = item,
+                                onAccept = { onAccept(item.responseId) },
+                                onReject = { onReject(item.responseId) },
+                            )
+                        }
+                    } else {
+                        items(data.outgoing, key = { it.responseId }) { item ->
+                            OutgoingRequestCard(item = item)
+                        }
                     }
                 }
             }
+
+            LoadState.Idle -> Unit
         }
     }
 }
 
 @Composable
-private fun IncomingRequestCard(item: IncomingRequestUi) {
+private fun IncomingRequestCard(
+    item: IncomingRequestUi,
+    onAccept: () -> Unit,
+    onReject: () -> Unit,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -204,14 +159,22 @@ private fun IncomingRequestCard(item: IncomingRequestUi) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Box(
                     modifier = Modifier
                         .size(32.dp)
                         .background(Color.LightGray, CircleShape)
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                Text(text = item.fromName, fontWeight = FontWeight.Bold, fontSize = 14.sp, color = PetMatesTextPrimary)
+                Text(
+                    text = item.fromName,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = PetMatesTextPrimary
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 Text(text = item.date, fontSize = 12.sp, color = PetMatesTextSecondary)
             }
@@ -230,7 +193,7 @@ private fun IncomingRequestCard(item: IncomingRequestUi) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = { /* TODO */ },
+                    onClick = onAccept,
                     modifier = Modifier
                         .weight(1f)
                         .height(44.dp),
@@ -241,7 +204,7 @@ private fun IncomingRequestCard(item: IncomingRequestUi) {
                 }
 
                 OutlinedButton(
-                    onClick = { /* TODO */ },
+                    onClick = onReject,
                     modifier = Modifier
                         .weight(1f)
                         .height(44.dp),
@@ -318,7 +281,7 @@ private fun OutgoingStatusPreviewPending() {
     Column(modifier = Modifier.background(PetMatesBackground).padding(16.dp)) {
         OutgoingRequestCard(
             OutgoingRequestUi(
-                id = "p",
+                responseId = UUID.randomUUID(),
                 projectName = "Приложение Contacts",
                 date = "14.04.2026",
                 text = "Ваш отклик на роль «Backend девелопер»",
@@ -334,7 +297,7 @@ private fun OutgoingStatusPreviewAccepted() {
     Column(modifier = Modifier.background(PetMatesBackground).padding(16.dp)) {
         OutgoingRequestCard(
             OutgoingRequestUi(
-                id = "a",
+                responseId = UUID.randomUUID(),
                 projectName = "Task Tracker",
                 date = "12.04.2026",
                 text = "Ваш отклик на роль «Android разработчик»",
@@ -350,7 +313,7 @@ private fun OutgoingStatusPreviewRejected() {
     Column(modifier = Modifier.background(PetMatesBackground).padding(16.dp)) {
         OutgoingRequestCard(
             OutgoingRequestUi(
-                id = "r",
+                responseId = UUID.randomUUID(),
                 projectName = "Mobile Design System",
                 date = "09.04.2026",
                 text = "Ваш отклик на роль «Frontend разработчик»",
@@ -359,3 +322,4 @@ private fun OutgoingStatusPreviewRejected() {
         )
     }
 }
+

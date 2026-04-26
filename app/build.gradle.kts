@@ -49,7 +49,12 @@ android {
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libsCatalog.findLibrary("androidx-lifecycle-viewmodel-ktx").get())
+    implementation(libsCatalog.findLibrary("androidx-lifecycle-viewmodel-compose").get())
     implementation(libs.androidx.activity.compose)
+
+    // Needed because app-level Hilt modules reference Ktor types (HttpClient).
+    implementation(libsCatalog.findLibrary("ktor-client-core").get())
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)

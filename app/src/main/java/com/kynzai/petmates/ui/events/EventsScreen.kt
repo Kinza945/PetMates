@@ -25,14 +25,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,141 +45,56 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.kynzai.domain.common.LoadState
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
 import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
 import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
+import kotlinx.coroutines.delay
+import java.util.UUID
 
 private val TagBackground = Color(0xFFE0F2F1)
 private val TagText = Color(0xFF216762)
 private val OnlineGreen = Color(0xFF3AC83D)
 
-private data class FeedProjectUi(
-    val id: String,
-    val role: String,
-    val ratingCount: Int,
-    val name: String,
-    val description: String,
-    val tags: List<String>,
-    val authorName: String,
-    val isOnline: Boolean,
-)
+@Composable
+fun EventsRoute(
+    onProjectClick: (String) -> Unit = {},
+    vm: EventsViewModel = hiltViewModel(),
+) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val state by vm.state.collectAsState()
+
+    LaunchedEffect(query) {
+        delay(250)
+        vm.load(query)
+    }
+
+    EventsScreen(
+        projects = (state as? LoadState.Data)?.value.orEmpty(),
+        isLoading = state is LoadState.Loading,
+        query = query,
+        onQueryChange = { query = it },
+        onProjectClick = { id -> onProjectClick(id.toString()) },
+        onRespondClick = { vacancyId -> vm.respondToVacancy(vacancyId) },
+    )
+}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun EventsScreen(
-    onProjectClick: (String) -> Unit = {},
+    projects: List<FeedProjectUi>,
+    isLoading: Boolean,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onProjectClick: (UUID) -> Unit = {},
+    onRespondClick: (UUID) -> Unit = {},
 ) {
-    var query by remember { mutableStateOf("") }
-
-    val projects = remember {
-        listOf(
-            FeedProjectUi(
-                id = "p1",
-                role = "Frontend-разработчик",
-                ratingCount = 4,
-                name = "Приложение Contacts",
-                description = "Нашему проекту требуется разработчик, который сможет сверстать сайт на React. Нужно будет собрать страницу, формы и базовые компоненты интерфейса.",
-                tags = listOf("#web", "#react", "#hooks"),
-                authorName = "Clown[???]",
-                isOnline = true,
-            ),
-            FeedProjectUi(
-                id = "p2",
-                role = "Android-разработчик",
-                ratingCount = 12,
-                name = "PetMates Mobile",
-                description = "Ищем Android разработчика для работы с Jetpack Compose, Ktor client и Supabase. Нужны аккуратные UI и чистая архитектура.",
-                tags = listOf("#kotlin", "#compose", "#ktor"),
-                authorName = "kynzai",
-                isOnline = false,
-            ),
-            FeedProjectUi(
-                id = "p3",
-                role = "Backend-разработчик",
-                ratingCount = 7,
-                name = "Task Tracker API",
-                description = "Нужно поднять REST API на Ktor, подключить PostgreSQL, настроить миграции и базовую авторизацию. Важно: чистые слои и тесты.",
-                tags = listOf("#ktor", "#postgres", "#clean"),
-                authorName = "BackendEnjoyer",
-                isOnline = true,
-            ),
-            FeedProjectUi(
-                id = "p4",
-                role = "UI/UX дизайнер",
-                ratingCount = 2,
-                name = "Mobile Design System",
-                description = "Собираем библиотеку компонентов для мобильного приложения. Нужны экраны, типографика, токены и документация.",
-                tags = listOf("#figma", "#uiux", "#design"),
-                authorName = "DesignMaster",
-                isOnline = true,
-            ),
-            FeedProjectUi(
-                id = "p5",
-                role = "QA инженер",
-                ratingCount = 9,
-                name = "PetMates QA",
-                description = "Настроить набор автотестов, базовый тест-план и регрессию. Плюс — опыт с Compose UI test и mock-сервером.",
-                tags = listOf("#qa", "#testing", "#compose"),
-                authorName = "qa_cat",
-                isOnline = false,
-            ),
-            FeedProjectUi(
-                id = "p6",
-                role = "DevOps",
-                ratingCount = 5,
-                name = "CI для PetMates",
-                description = "Нужен GitHub Actions: сборка, линт, тесты, артефакты, релизные сборки. По желанию — docker для backend.",
-                tags = listOf("#ci", "#github", "#devops"),
-                authorName = "ops_guy",
-                isOnline = false,
-            ),
-            FeedProjectUi(
-                id = "p7",
-                role = "Data Analyst",
-                ratingCount = 1,
-                name = "Analytics Dashboard",
-                description = "Сделать прототип аналитики: события, конверсии, retention. Нужна схема данных и валидация качества.",
-                tags = listOf("#sql", "#analytics", "#dashboard"),
-                authorName = "data_fox",
-                isOnline = true,
-            ),
-            FeedProjectUi(
-                id = "p8",
-                role = "iOS разработчик",
-                ratingCount = 3,
-                name = "PetMates iOS",
-                description = "Делаем iOS клиент для PetMates. Нужны базовые экраны, сетевой слой и архитектура.",
-                tags = listOf("#ios", "#swift", "#mobile"),
-                authorName = "swiftie",
-                isOnline = false,
-            ),
-            FeedProjectUi(
-                id = "p9",
-                role = "Product Manager",
-                ratingCount = 6,
-                name = "PetMates Roadmap",
-                description = "Собрать роадмап, разметить приоритеты, собрать фидбек от команды. Нужно вести бэклог и релизы.",
-                tags = listOf("#pm", "#roadmap", "#planning"),
-                authorName = "product_ninja",
-                isOnline = true,
-            ),
-            FeedProjectUi(
-                id = "p10",
-                role = "Frontend-разработчик",
-                ratingCount = 11,
-                name = "Landing PetMates",
-                description = "Лендинг с описанием платформы, формой заявки и CTA. Нужны анимации и адаптив.",
-                tags = listOf("#frontend", "#landing", "#css"),
-                authorName = "web_tiger",
-                isOnline = true,
-            ),
-        )
-    }
-
-    val filtered = projects.filter { p ->
-        query.isBlank() || p.name.contains(query, ignoreCase = true)
+    val filtered = projects.filter {
+        if (query.isBlank()) true
+        else it.name.contains(query, ignoreCase = true) || it.description.contains(query, ignoreCase = true)
     }
 
     Column(
@@ -188,12 +106,18 @@ fun EventsScreen(
     ) {
         OutlinedTextField(
             value = query,
-            onValueChange = { query = it },
+            onValueChange = onQueryChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag("events_search"),
             placeholder = { Text("Поиск по названию", color = PetMatesTextSecondary) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PetMatesTextSecondary) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = PetMatesTextSecondary
+                )
+            },
             shape = RoundedCornerShape(12.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
@@ -217,6 +141,7 @@ fun EventsScreen(
                 fontSize = 14.sp,
                 color = PetMatesTextSecondary
             )
+            Spacer(modifier = Modifier.size(4.dp))
             Icon(
                 imageVector = Icons.Default.KeyboardArrowDown,
                 contentDescription = null,
@@ -225,15 +150,30 @@ fun EventsScreen(
             )
         }
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 16.dp)
-                .testTag("events_list"),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(filtered, key = { it.id }) { item ->
-                ProjectCard(item = item, onClick = { onProjectClick(item.id) })
+        if (isLoading && filtered.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 24.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                CircularProgressIndicator(color = PetMatesPrimary)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 16.dp)
+                    .testTag("events_list"),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(filtered, key = { it.projectId }) { item ->
+                    ProjectCard(
+                        item = item,
+                        onClick = { onProjectClick(item.projectId) },
+                        onRespondClick = { item.vacancyId?.let(onRespondClick) },
+                    )
+                }
             }
         }
     }
@@ -244,6 +184,7 @@ fun EventsScreen(
 private fun ProjectCard(
     item: FeedProjectUi,
     onClick: () -> Unit,
+    onRespondClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -347,7 +288,8 @@ private fun ProjectCard(
                 }
 
                 Button(
-                    onClick = { /* TODO: respond */ },
+                    onClick = onRespondClick,
+                    enabled = item.vacancyId != null,
                     modifier = Modifier.height(40.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
@@ -358,3 +300,4 @@ private fun ProjectCard(
         }
     }
 }
+

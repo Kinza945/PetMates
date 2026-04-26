@@ -36,15 +36,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kynzai.petmates.ui.events.EventsScreen
+import com.kynzai.petmates.ui.events.EventsRoute
 import com.kynzai.petmates.ui.profile.ProfileScreen
-import com.kynzai.petmates.ui.requests.RequestsScreen
+import com.kynzai.petmates.ui.requests.RequestsRoute
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
 import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
 import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
-import com.kynzai.petmates.ui.users.UsersTab
+import com.kynzai.petmates.ui.users.UsersRoute
 
 private enum class MainTab { Profile, Events, Requests, Users }
 
@@ -54,6 +54,7 @@ fun MainScreen(
     isAuthorized: Boolean,
     onAuthRequested: () -> Unit,
     onNotificationsClick: () -> Unit,
+    onCreateProjectClick: () -> Unit,
     onNavigateToProject: (String) -> Unit = {},
     onNavigateToUser: (String) -> Unit = {},
 ) {
@@ -123,13 +124,13 @@ fun MainScreen(
                     if (!isAuthorized) {
                         GuestProfilePlaceholder(onAuthRequested)
                     } else {
-                        ProfileScreen()
+                        ProfileScreen(onCreateProjectClick = onCreateProjectClick)
                     }
                 }
 
-                MainTab.Events -> EventsScreen(onProjectClick = onNavigateToProject)
-                MainTab.Requests -> RequestsScreen()
-                MainTab.Users -> UsersTab(onUserClick = onNavigateToUser)
+                MainTab.Events -> EventsRoute(onProjectClick = onNavigateToProject)
+                MainTab.Requests -> RequestsRoute()
+                MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser)
             }
         }
     }

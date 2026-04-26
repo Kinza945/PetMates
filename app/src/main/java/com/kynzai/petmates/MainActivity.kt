@@ -10,10 +10,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.kynzai.petmates.navigation.AppNavigation
 import com.kynzai.petmates.ui.theme.PetMatesTheme
+import com.kynzai.petmates.session.SessionManager
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @Inject lateinit var sessionManager: SessionManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge() // Делает приложение на весь экран (прозрачный статус-бар)
@@ -26,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     // Запускаем наш главный экран с навигацией!
-                    AppNavigation()
+                    AppNavigation(sessionManager = sessionManager)
                 }
             }
         }

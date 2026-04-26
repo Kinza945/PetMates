@@ -21,6 +21,7 @@ class MainScreenTest {
                 isAuthorized = false,
                 onAuthRequested = { authRequested = true },
                 onNotificationsClick = { notificationsRequested = true },
+                onCreateProjectClick = {},
             )
         }
 
@@ -46,6 +47,7 @@ class MainScreenTest {
                 isAuthorized = true,
                 onAuthRequested = {},
                 onNotificationsClick = { called = true },
+                onCreateProjectClick = {},
             )
         }
 
