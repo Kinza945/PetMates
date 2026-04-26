@@ -17,7 +17,7 @@ class AuthScreenTest {
     @Test
     fun loginButton_disabled_until_email_and_password_filled() {
         rule.setContent {
-            AuthScreen(onAuthorizedContinue = { _, _ -> }, onGuestContinue = {})
+            AuthScreen(onLogin = {}, onRegister = {}, onGuestContinue = {})
         }
 
         rule.onNodeWithText("Войти").assertIsNotEnabled()
@@ -32,7 +32,7 @@ class AuthScreenTest {
     @Test
     fun can_switch_to_register_tab() {
         rule.setContent {
-            AuthScreen(onAuthorizedContinue = { _, _ -> }, onGuestContinue = {})
+            AuthScreen(onLogin = {}, onRegister = {}, onGuestContinue = {})
         }
 
         rule.onNodeWithText("Регистрация аккаунта").performClick()

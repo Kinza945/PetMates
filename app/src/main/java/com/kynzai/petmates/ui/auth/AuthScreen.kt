@@ -51,6 +51,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
+import com.kynzai.domain.models.LoginRequest
+import com.kynzai.domain.models.RegisterRequest
 import com.kynzai.petmates.R
 
 private val Primary = Color(0xFF40B4A4)
@@ -62,8 +64,10 @@ private enum class Mode { Login, Register }
 
 @Composable
 fun AuthScreen(
-    onAuthorizedContinue: (nickname: String, email: String) -> Unit,
+    onLogin: (LoginRequest) -> Unit,
+    onRegister: (RegisterRequest) -> Unit,
     onGuestContinue: () -> Unit,
+    onSocialAuth: (nickname: String, email: String) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
 
@@ -243,8 +247,24 @@ fun AuthScreen(
 
             Button(
                 onClick = {
-                    val resultEmail = if (mode == Mode.Login) "$username@example.com" else email
-                    onAuthorizedContinue(username, resultEmail) },
+                    if (mode == Mode.Login) {
+                        onLogin(
+                            LoginRequest(
+                                nicknameOrEmail = username,
+                                password = password,
+                                rememberMe = rememberMe,
+                            )
+                        )
+                    } else {
+                        onRegister(
+                            RegisterRequest(
+                                nickname = username,
+                                email = email,
+                                password = password,
+                            )
+                        )
+                    }
+                },
                 enabled = isFormValid,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -306,21 +326,21 @@ fun AuthScreen(
                     iconRes = R.drawable.ic_google,
                     onClick = {
                         Toast.makeText(context, "Google вход (мок)", Toast.LENGTH_SHORT).show()
-                        onAuthorizedContinue("Google_User", "google@test.com")
+                        onSocialAuth("Google_User", "google@test.com")
                     }
                 )
                 SocialCircleButton(
                     iconRes = R.drawable.ic_github,
                     onClick = {
                         Toast.makeText(context, "GitHub вход (мок)", Toast.LENGTH_SHORT).show()
-                        onAuthorizedContinue("Github_User", "github@test.com")
+                        onSocialAuth("Github_User", "github@test.com")
                     }
                 )
                 SocialCircleButton(
                     iconRes = R.drawable.ic_telegram,
                     onClick = {
                         Toast.makeText(context, "Telegram вход (мок)", Toast.LENGTH_SHORT).show()
-                        onAuthorizedContinue("Github_User", "github@test.com")
+                        onSocialAuth("Telegram_User", "telegram@test.com")
                     }
                 )
 

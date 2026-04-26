@@ -1,0 +1,993 @@
+[33mcommit 26ca40fd4ac07b340814d028591cef85a900bc10[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Kinza <egort.egort05@mail.ru>
+Date:   Tue Apr 21 13:20:02 2026 +0300
+
+    Remove .gradle-user-home from repository
+
+ .gitignore                                         |    22 [32m+[m
+ .../dm/LibrariesForLibs$BundleAccessors.class      |   Bin [31m756[m -> [32m0[m bytes
+ .../dsl/Accessors8g8q0rlv9fmjeq4kh1pwpag9kKt.class |   Bin [31m858[m -> [32m0[m bytes
+ .../dsl/Accessors9vima736ghgz222gu2to8zzdxKt.class |   Bin [31m842[m -> [32m0[m bytes
+ .../dsl/Accessorscrbmd2dtip5urbk53zkvzivnmKt.class |   Bin [31m880[m -> [32m0[m bytes
+ .../dsl/Accessorsf2dmt7j4b6zf7h6v6t1p19cagKt.class |   Bin [31m846[m -> [32m0[m bytes
+ ...sDebugCompileOnlyConfigurationAccessorsKt.class |   Bin [31m5484[m -> [32m0[m bytes
+ .../dsl/Accessors5n84r8d0wlgk7ty6rfnleln5a.kt      |    74 [31m-[m
+ .../dsl/Accessors7tjndw5dv7mzft439ljcweyxb.kt      |    67 [31m-[m
+ .../dsl/Accessorsakm04274c22y1kwaaolwod9e9.kt      |    67 [31m-[m
+ ...tReleaseImplementationConfigurationAccessors.kt |   214 [31m-[m
+ ...bugAnnotationProcessorConfigurationAccessors.kt |   214 [31m-[m
+ .../dsl/Accessorsbu4celzmx94h5ebu8epruan0bKt.class |   Bin [31m1140[m -> [32m0[m bytes
+ .../dsl/Accessorserpuo9ri63i4ut3d5pyptv112.kt      |    74 [31m-[m
+ .../dsl/Accessors8g8q0rlv9fmjeq4kh1pwpag9kKt.class |   Bin [31m858[m -> [32m0[m bytes
+ ...aseImplementationConfigurationAccessorsKt.class |   Bin [31m5463[m -> [32m0[m bytes
+ .../dsl/Accessors5dsbm02chpefcwvpz3wzdur8u.kt      |    67 [31m-[m
+ .../dsl/Accessorsbb09k6f0e70kui44t8hkezd80.kt      |    67 [31m-[m
+ .../gradle/kotlin/dsl/ApiConfigurationAccessors.kt |   214 [31m-[m
+ .../dsl/Accessors9mkn0up732w3htvamou69sdmiKt.class |   Bin [31m1327[m -> [32m0[m bytes
+ ...aseImplementationConfigurationAccessorsKt.class |   Bin [31m5475[m -> [32m0[m bytes
+ .../gradle/kotlin/dsl/ApiConfigurationAccessors.kt |   214 [31m-[m
+ .../dsl/Accessors5igw27crtgawysfpsiujyw959Kt.class |   Bin [31m850[m -> [32m0[m bytes
+ .../dsl/Accessors2sci8yewa96g0fyfhouaecr70.kt      |    74 [31m-[m
+ .../dsl/Accessors61kov99om1lnxmyq7nrdnwe8o.kt      |    67 [31m-[m
+ .../dsl/Accessors755qfgs1mebxgj2rkmtzq31iw.kt      |    74 [31m-[m
+ .../dsl/Accessorsbu4celzmx94h5ebu8epruan0bKt.class |   Bin [31m1140[m -> [32m0[m bytes
+ .../dsl/Accessorserpuo9ri63i4ut3d5pyptv112Kt.class |   Bin [31m1127[m -> [32m0[m bytes
+ .../dsl/Accessors87ap2xullvrl5slfxppy00733.kt      |    67 [31m-[m
+ .../dsl/Accessorsbyjwlb4x74jsdh5ebc6q40o0j.kt      |    67 [31m-[m
+ .../dsl/Accessorsexiottiqdoq5rm4qirwgv19fl.kt      |    67 [31m-[m
+ ...bugAnnotationProcessorConfigurationAccessors.kt |   214 [31m-[m
+ .../dsl/TestRuntimeOnlyConfigurationAccessors.kt   |   214 [31m-[m
+ .../dsl/Accessors8g8q0rlv9fmjeq4kh1pwpag9kKt.class |   Bin [31m858[m -> [32m0[m bytes
+ .../dsl/Accessors9vima736ghgz222gu2to8zzdxKt.class |   Bin [31m842[m -> [32m0[m bytes
+ .../dsl/Accessorscrbmd2dtip5urbk53zkvzivnmKt.class |   Bin [31m880[m -> [32m0[m bytes
+ ...notationProcessorConfigurationAccessorsKt.class |   Bin [31m5514[m -> [32m0[m bytes
+ .../dsl/Accessors3k3m07x2cnwcqo7oawsqxr192.kt      |    67 [31m-[m
+ .../dsl/Accessorscos8dg81v85o3lll35bb03wlq.kt      |    67 [31m-[m
+ .../dsl/Accessors6su2os1zvten8f40s35jyjjy6Kt.class |   Bin [31m836[m -> [32m0[m bytes
+ ...endenciesMetadataConfigurationAccessorsKt.class |   Bin [31m5514[m -> [32m0[m bytes
+ .../dsl/Accessors5igw27crtgawysfpsiujyw959.kt      |    67 [31m-[m
+ .../dsl/Accessors6su2os1zvten8f40s35jyjjy6.kt      |    67 [31m-[m
+ .../dsl/Accessors4utk9s9wkq1gwnfaumz2ci2i4Kt.class |   Bin [31m754[m -> [32m0[m bytes
+ .../dsl/Accessors5igw27crtgawysfpsiujyw959.kt      |    67 [31m-[m
+ .../dsl/Accessors6su2os1zvten8f40s35jyjjy6.kt      |    67 [31m-[m
+ .../workspace/classes/Build_gradle$1.class         |   Bin [31m1465[m -> [32m0[m bytes
+ .../workspace/classes/Build_gradle.class           |   Bin [31m6037[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../instrumented/classes/Settings_gradle.class     |   Bin [31m2078[m -> [32m0[m bytes
+ .../0000022f9d1b1435fc7a057d4dacf452.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../hilt-navigation-compose-1.3.0-runtime          |     1 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../transformed/window-1.5.0/AndroidManifest.xml   |    31 [31m-[m
+ .../drawable_ic_call_decline.xml.flat              |   Bin [31m1840[m -> [32m0[m bytes
+ .../04849537a4f20212fb15d5311fa6d381.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/transformed/loader-1.0.0-runtime     |    23 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../android/build/gradle/aar-metadata.properties   |     6 [31m-[m
+ .../workspace/results.bin                          |     2 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../0836aaf34a99503936d6b84e4411d769.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../0840628ee48465255e947162e7581c60.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../095d64be5c1b99538f839897d8881c84.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../drawable_notification_tile_bg.xml.flat         |   Bin [31m528[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../0c56c0b4e1523936ee726096b9ef22a4.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../0ca4e0e1d385c0adbb2b7ebf89b66851.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../transformed/androidx.cursoradapter-r.txt       |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../0e4d6d9cca3d809469ef45f8cf4a250d.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     3 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../13175e9d93b4565b993df2679132f797.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../184083d7e1572ff936c9a52f24a4e984.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../19f768cc803d668d92270c09f82fb8f7.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../1a87ef93e24805c0ede941d12aa3eac9.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../1dffc5f22035311828074b652b500f2d.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../22a048f7cb0dba686ba9be421364e5b2.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../22cbb03b7706ea8628ae384f6f6c1bc7.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../savedstate-ktx-1.4.0/res/values/values.xml     |     3 [31m-[m
+ .../workspace/results.bin                          |     0
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../.gradle-instrumented-classpath.marker          |     0
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../25fefb07cda9368b72b18e323f806b0b.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../299b49db6c266d6be6024af0d97e74dd.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../material3/res/values-gu/values-gu.xml          |    69 [31m-[m
+ .../material3/res/values-hi/values-hi.xml          |    69 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../2d8dc72b030f460b9785fe240fb21fb8.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../2f80df0b6286123cf7583617d454f6ff.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../foundation/res/values-hy/values-hy.xml         |     6 [31m-[m
+ .../foundation/res/values-ne/values-ne.xml         |     6 [31m-[m
+ .../workspace/transformed/output.bin               |   Bin [31m954[m -> [32m0[m bytes
+ .../lifecycle-viewmodel-ktx-2.10.0/R.txt           |     0
+ .../analysis/instrumentation-dependencies.bin      |   Bin [31m6983[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/results.bin                          |     0
+ .../37fa61c757ed94b4f1ae6597badf7266.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../383d83930674c92e4daf19cc90139197.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../3a201ac5f4c3fc52b5424c7da470e3d8.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../instrumented-kotlin-stdlib-jdk7-2.2.10.jar     |   Bin [31m1227[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/transformed/foundation-layout/R.txt  |     0
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../443a218a286d7c752fbec53e262daf55.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../transformed/startup-runtime-1.1.1/public.txt   |     0
+ .../workspace/results.bin                          |     0
+ .../workspace/results.bin                          |     1 [31m-[m
+ ...trumented-kotlinx-coroutines-core-jvm-1.9.0.jar |   Bin [31m3382589[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../47939b667eb27b593902619f581b0713.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../transformed/core-viewtree-1.0.0/R.txt          |     1 [31m-[m
+ .../analysis/instrumentation-dependencies.bin      |   Bin [31m148[m -> [32m0[m bytes
+ .../4e53fe430d2dfed02a95f1db28a2a1d0.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../4ebf4f631fedbff2dedd540cd51ee78e.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../4ff6846a636da782b2a0e2e381e07e65.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../50227e78a7c01571da47ff6e25631625.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../transformed/ui-text-runtime/classes.dex        |   Bin [31m995660[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../546acf4620496906bf1c8b03902fe888.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../5507743dd2f272f5ae62fec1a4b9d3ef.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../56ebce8fc3a17e3aaa37a557e3db42e9.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../anim_mtrl_bottom_sheet_slide_out.xml.flat      |   Bin [31m844[m -> [32m0[m bytes
+ .../color_m3_radiobutton_button_tint.xml.flat      |   Bin [31m3176[m -> [32m0[m bytes
+ ...rl_navigation_bar_colored_ripple_color.xml.flat |   Bin [31m1580[m -> [32m0[m bytes
+ .../593aafac9abf448f8ed3c9609b5ce7fd.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../5ba05a1e9b580631df2b6f0b4771ac2e.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../5c9bb7b72436ce57a6167e088703146b.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/transformed/output.bin               |   Bin [31m1246815[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../navigation/navigation-compose/LICENSE.txt      |   178 [31m-[m
+ .../5e6c5feedba75f05577658510ac23e31.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../5ed4dc49653eb0585ed5da1705b9936c.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../5f21895ab27fe6b415251d45912a52bf.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../5fb8303d3096655c1a8ef14b96c4ceab.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../hilt-navigation-compose-1.3.0-runtime.jar      |   Bin [31m9916[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/results.bin                          |     3 [31m-[m
+ .../6442f15f8679b6cc71362df811f18af3.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../transformed/androidx.appcompat.resources-r.txt |     7 [31m-[m
+ .../material3/res/values-ml/values-ml.xml          |    69 [31m-[m
+ .../workspace/results.bin                          |     2 [31m-[m
+ .../anim_abc_slide_out_top.xml.flat                |   Bin [31m688[m -> [32m0[m bytes
+ ...i-v4_abc_btn_switch_to_on_mtrl_00012.9.png.flat |   Bin [31m1148[m -> [32m0[m bytes
+ ...bc_list_selector_disabled_holo_light.9.png.flat |   Bin [31m552[m -> [32m0[m bytes
+ ...i-v4_abc_text_select_handle_right_mtrl.png.flat |   Bin [31m748[m -> [32m0[m bytes
+ ...drawable_abc_item_background_holo_dark.xml.flat |   Bin [31m1888[m -> [32m0[m bytes
+ .../layout_abc_cascading_menu_item_layout.xml.flat |   Bin [31m3872[m -> [32m0[m bytes
+ .../transformed/ui-util-runtime/classes.dex        |   Bin [31m29780[m -> [32m0[m bytes
+ .../workspace/transformed/ui-tooling-api.jar       |   Bin [31m456723[m -> [32m0[m bytes
+ .../6b9e469a20adbb8a25341812537fc4df.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../res/color/mtrl_filled_stroke_color.xml         |    23 [31m-[m
+ .../res/color/mtrl_tabs_colored_ripple_color.xml   |    26 [31m-[m
+ .../res/layout/m3_auto_complete_simple_item.xml    |    26 [31m-[m
+ .../.gradle-instrumented-classpath.marker          |     0
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../7070d943b21d26eb616920e6aec2e701.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../714f5227c5d6ab8caeb3e29e98544abc.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../726cfe2ff1418662805e4b14d31d83b9.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     3 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../7547f18591e25a6514cf28e91b1dda95.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../75486bf65e02a640649836189736a33c.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/transformed/output.bin               |   Bin [31m844[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../drawable_abc_tab_indicator_material.xml.flat   |   Bin [31m672[m -> [32m0[m bytes
+ ...io_to_on_mtrl_animation_interpolator_0.xml.flat |   Bin [31m524[m -> [32m0[m bytes
+ .../76d5a72930564c98fe6a901ec191b941.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../780ad5c907849eb9795bcbe3b40b4b7c.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../780dda12c2c275c1153315fd616bca08.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../7891b4b468646d9cef637335491aa561.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../7993e2e0aadf7f3ab7c7a4315c835e35.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../7abb13a51c85d2e7dddc3b6ebab9c975.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../abc_ab_share_pack_mtrl_alpha.9.png             |   Bin [31m112[m -> [32m0[m bytes
+ .../abc_list_longpressed_holo.9.png                |   Bin [31m94[m -> [32m0[m bytes
+ .../abc_tab_indicator_mtrl_alpha.9.png             |   Bin [31m106[m -> [32m0[m bytes
+ .../abc_search_dropdown_item_icons_2line.xml       |    85 [31m-[m
+ .../workspace/results.bin                          |     2 [31m-[m
+ .../instrumented/instrumented-common-32.1.0.jar    |   Bin [31m1230808[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     0
+ .../8507fdb5ae398256360c2ce48123b58b.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../85e1e10c39462cdfa0ddacdf8dca72ba.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../865ee730bde3690596f857ba78703a68.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../drawable_ic_call_answer_video.xml.flat         |   Bin [31m1092[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../8fab540515aa3aac40d6b3b65062d2e3.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../905aaf94201435e63f6f6d25e1eda5e7.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../animator_design_fab_hide_motion_spec.xml.flat  |   Bin [31m1396[m -> [32m0[m bytes
+ .../drawable_ic_mtrl_checked_circle.xml.flat       |   Bin [31m1032[m -> [32m0[m bytes
+ ...mtrl_checkbox_button_checked_unchecked.xml.flat |   Bin [31m4304[m -> [32m0[m bytes
+ .../layout_mtrl_alert_select_dialog_item.xml.flat  |   Bin [31m1116[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../941c17fb4a179205eac5f020d42d7287.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../9444e6940ab8ce34aa46cc0bf47baca1.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../95c671e3ea4461289fe66005ff811068.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../98830d9bce7e3b088eab6b0a1761063f.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../9c1ba13bc5525811c7644d467cc94d9a.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../9e45e723d96c452c26a184f0765f4514.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../9f85ea6441f82f2912197878a0019836.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../a08a7f62ec77f948c96bdb256ed04999.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../a487f656eafa364147b3fb649b106332.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../a71ed7b7fe5dd68b783fd9449cd29d65.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../a778e40c477400654f78f75ad27a9e14.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../transformed/runtime-retain/jars/lint.jar       |   Bin [31m1109189[m -> [32m0[m bytes
+ .../transformed/runtime-retain/proguard.txt        |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../ac6c2a3f48bc29b9eec2ac4a7304eb93.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../ad2cdc3f31d0adf2c54eca064b69ee5d.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |   Bin [31m111[m -> [32m0[m bytes
+ .../documentfile-1.0.0/jars/classes.jar            |   Bin [31m11278[m -> [32m0[m bytes
+ .../b03a38ecd2781322943741dea0a77d29.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     2 [31m-[m
+ .../transformed/kotlinx-coroutines-android-1.9.0   |     7 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../b326dd1a208bc0d66b1406eba2f7b535.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../transformed/versionedparcelable-1.1.1-api.jar  |   Bin [31m70999[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../transformed/savedstate-compose-api.jar         |   Bin [31m27243[m -> [32m0[m bytes
+ .../b847902e7165c990f24cfc85e96dd809.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../b899bf0c58c2d3c74745e9369a987faf.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/transformed/ktor-http-cio-jvm-3.4.2  |    62 [31m-[m
+ .../workspace/transformed/ui-tooling/R.txt         |     0
+ .../workspace/transformed/ui-tooling/public.txt    |     0
+ .../workspace/results.bin                          |     0
+ .../be3decbb59ac58defb7131e60fd4ff35.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../foundation/res/values-hi/values-hi.xml         |     6 [31m-[m
+ ...-xhdpi-v4_abc_btn_check_to_on_mtrl_000.png.flat |   Bin [31m596[m -> [32m0[m bytes
+ ...v4_abc_scrubber_control_off_mtrl_alpha.png.flat |   Bin [31m592[m -> [32m0[m bytes
+ ...xxhdpi-v4_abc_btn_check_to_on_mtrl_000.png.flat |   Bin [31m620[m -> [32m0[m bytes
+ .../layout_abc_action_mode_bar.xml.flat            |   Bin [31m744[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../c3a6118e1d5c70308876b729aa4e43fe.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../jars/classes.jar                               |   Bin [31m231[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../analysis/instrumentation-hierarchy.bin         |   Bin [31m4601[m -> [32m0[m bytes
+ .../analysis/instrumentation-hierarchy.bin         |   Bin [31m612[m -> [32m0[m bytes
+ .../ccc89509489fe017cfd6a02b0ef0fea7.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../.gradle-instrumented-classpath.marker          |     0
+ .../workspace/metadata.bin                         |   Bin [31m110[m -> [32m0[m bytes
+ .../androidx.hilt.lifecycle.viewmodel-r.txt        |     1 [31m-[m
+ .../androidx/compose/ui/ui-geometry/LICENSE.txt    |   178 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../d0f3e82b753f4217e3d3bfff2c925691.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../d444b5d2be5b527b5574294f7b99dde8.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../hilt/hilt-navigation-compose/LICENSE.txt       |   178 [31m-[m
+ .../dba1da53806d0584a79dc93f8a5b8992.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../transformed/ui-tooling/AndroidManifest.xml     |    28 [31m-[m
+ .../color_mtrl_popupmenu_overlay_color.xml.flat    |   Bin [31m540[m -> [32m0[m bytes
+ ...ial_ic_keyboard_arrow_right_black_24dp.xml.flat |   Bin [31m1140[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../aapt2-9.1.0-14792394-windows/aapt2.exe         |   Bin [31m4993024[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../cardview-1.0.0/res/values/values.xml           |    54 [31m-[m
+ .../workspace/results.bin                          |     0
+ .../workspace/transformed/output.bin               |   Bin [31m1660[m -> [32m0[m bytes
+ .../e43c46de1812069fd6c829ac0e79c896.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../e4647207e1120aa115ba6aa7eb8d2c32.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../.gradle-instrumented-classpath.marker          |     0
+ .../e544b91b541a40e1b43076e13c5ccd72.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../ui/res/values-en-rGB/values-en-rGB.xml         |    23 [31m-[m
+ .../transformed/ui/res/values-et/values-et.xml     |    23 [31m-[m
+ .../ui/res/values-pt-rPT/values-pt-rPT.xml         |    23 [31m-[m
+ .../analysis/instrumentation-dependencies.bin      |   Bin [31m179[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../transformed/appcompat-1.6.1/annotations.zip    |   Bin [31m2394[m -> [32m0[m bytes
+ .../abc_btn_radio_to_on_mtrl_015.png               |   Bin [31m356[m -> [32m0[m bytes
+ .../abc_scrubber_control_to_pressed_mtrl_000.png   |   Bin [31m145[m -> [32m0[m bytes
+ .../abc_scrubber_track_mtrl_alpha.9.png            |   Bin [31m101[m -> [32m0[m bytes
+ .../appcompat-1.6.1/res/values-kn/values-kn.xml    |    31 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../e70d22d171c62d85470dd7703c8c32da.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../ea4f8268783f9071b93fc629a16ad99c.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../eaa13ceb9a6a782be3b3b07d4242a3be.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     2 [31m-[m
+ .../eb525949bd5999962468fa987a807cfd.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../eb63286918875da6435804acb1fffba9.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../cursoradapter-1.0.0/AndroidManifest.xml        |    22 [31m-[m
+ .../btn_radio_to_on_mtrl_dot_group_animation.xml   |    65 [31m-[m
+ .../abc_list_longpressed_holo.9.png                |   Bin [31m101[m -> [32m0[m bytes
+ .../abc_scrubber_track_mtrl_alpha.9.png            |   Bin [31m110[m -> [32m0[m bytes
+ .../drawable/abc_ic_menu_paste_mtrl_am_alpha.xml   |    25 [31m-[m
+ .../jars/classes.jar                               |   Bin [31m2494[m -> [32m0[m bytes
+ .../material/res/values-ar/values-ar.xml           |     4 [31m-[m
+ .../material/res/values-is/values-is.xml           |     4 [31m-[m
+ .../eda672d880d19da0f8dea3a95bc3273e.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../hilt-lifecycle-viewmodel-1.3.0-runtime.jar     |   Bin [31m2708[m -> [32m0[m bytes
+ .../transformed/dynamicanimation-1.0.0-runtime.jar |   Bin [31m75174[m -> [32m0[m bytes
+ .../jars/classes.jar                               |   Bin [31m55055[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../f0dfa14ba0d33afdaa41ea239eae3c9f.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/results.bin                          |     0
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../workspace/metadata.bin                         |   Bin [31m111[m -> [32m0[m bytes
+ .../.gradle-instrumented-classpath.marker          |     0
+ .../f361e3a05cc83ad61e054c6391d3e4f1.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../f4623dbbf2b5f56417bc8a89a6b4f151.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../transformed/ui/res/values-hy/values-hy.xml     |    23 [31m-[m
+ .../transformed/ui/res/values-ne/values-ne.xml     |    23 [31m-[m
+ .../transformed/ui/res/values-ur/values-ur.xml     |    23 [31m-[m
+ .../workspace/metadata.bin                         |     3 [31m-[m
+ .../f922924ff60c50c1b4ac895fdc2139c0.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/results.bin                          |     1 [31m-[m
+ .../res/color/m3_appbar_overlay_color.xml          |    21 [31m-[m
+ .../m3_text_button_foreground_color_selector.xml   |    29 [31m-[m
+ .../res/layout/mtrl_calendar_day.xml               |    20 [31m-[m
+ .../material-1.10.0/res/values-mn/values-mn.xml    |    75 [31m-[m
+ .../res/color/m3_default_color_primary_text.xml    |    22 [31m-[m
+ .../m3_timepicker_button_background_color.xml      |    20 [31m-[m
+ ...l_personalized_color_secondary_text_inverse.xml |    22 [31m-[m
+ .../res/layout/material_clock_display_divider.xml  |    26 [31m-[m
+ .../workspace/results.bin                          |     0
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../workspace/metadata.bin                         |     1 [31m-[m
+ .../ff133ae9ba2c3dd0eb33e6638f27b826.lock          |   Bin [31m17[m -> [32m0[m bytes
+ .../runtime-saveable.aar                           |   Bin [31m1058083[m -> [32m0[m bytes
+ .../runtime-saveable-1.10.4.pom                    |   117 [31m-[m
+ .../fragment-1.3.6.pom                             |   110 [31m-[m
+ .../viewpager-1.0.0.aar                            |   Bin [31m53513[m -> [32m0[m bytes
+ .../protobuf-java-3.25.5.pom                       |    41 [31m-[m
+ .../ktor-utils-3.4.2.pom                           |    60 [31m-[m
+ .../jna-5.6.0.pom                                  |    53 [31m-[m
+ .../kotlin-bom-1.8.22.pom                          |   230 [31m-[m
+ .../kotlin-gradle-plugin-annotations-2.2.10.jar    |   Bin [31m4689[m -> [32m0[m bytes
+ .../asm-commons-9.9.pom                            |    89 [31m-[m
+ .../descriptor.bin                                 |   Bin [31m1090[m -> [32m0[m bytes
+ .../descriptor.bin                                 |   Bin [31m7474[m -> [32m0[m bytes
+ .../descriptor.bin                                 |   Bin [31m22141[m -> [32m0[m bytes
+ .../descriptor.bin                                 |   Bin [31m1600[m -> [32m0[m bytes
+ .../descriptor.bin                                 |   Bin [31m19734[m -> [32m0[m bytes
+ .../descriptor.bin                                 |   Bin [31m358[m -> [32m0[m bytes
+ .../gradle-9.3.1/lib/failureaccess-1.0.3.jar       |   Bin [31m10763[m -> [32m0[m bytes
+ .../gradle-9.3.1/lib/groovy-nio-4.0.29.jar         |   Bin [31m16242[m -> [32m0[m bytes
+ .../lib/plugins/google-http-client-gson-1.42.2.jar |   Bin [31m10580[m -> [32m0[m bytes
+ .idea/.gitignore                                   |     3 [32m+[m
+ .idea/AndroidProjectSystem.xml                     |     6 [32m+[m
+ .idea/appInsightsSettings.xml                      |    26 [32m+[m
+ .idea/compiler.xml                                 |     6 [32m+[m
+ .idea/deploymentTargetSelector.xml                 |    15 [32m+[m
+ .idea/gradle.xml                                   |    20 [32m+[m
+ .idea/inspectionProfiles/Project_Default.xml       |    61 [32m+[m
+ .idea/kotlinc.xml                                  |     7 [32m+[m
+ .idea/misc.xml                                     |     9 [32m+[m
+ .idea/runConfigurations.xml                        |    17 [32m+[m
+ .idea/studiobot.xml                                |     6 [32m+[m
+ .idea/vcs.xml                                      |     6 [32m+[m
+ app/.gitignore                                     |     6 [32m+[m
+ app/build.gradle.kts                               |    77 [32m+[m
+ app/proguard-rules.pro                             |    21 [32m+[m
+ .../com/kynzai/petmates/ExampleInstrumentedTest.kt |    24 [32m+[m
+ .../com/kynzai/petmates/ui/auth/AuthScreenTest.kt  |    47 [32m+[m
+ .../kynzai/petmates/ui/events/EventsScreenTest.kt  |    29 [32m+[m
+ .../com/kynzai/petmates/ui/main/MainScreenTest.kt  |    58 [32m+[m
+ .../petmates/ui/profile/NotificationsTabTest.kt    |    29 [32m+[m
+ .../petmates/ui/profile/ProfileScreenTest.kt       |    29 [32m+[m
+ .../petmates/ui/requests/RequestsScreenTest.kt     |    29 [32m+[m
+ app/src/main/AndroidManifest.xml                   |    28 [32m+[m
+ .../main/java/com/kynzai/petmates/MainActivity.kt  |    34 [32m+[m
+ .../main/java/com/kynzai/petmates/PetMatesApp.kt   |     7 [32m+[m
+ .../kynzai/petmates/navigation/AppNavigation.kt    |    88 [32m+[m
+ .../java/com/kynzai/petmates/navigation/Routes.kt  |    19 [32m+[m
+ .../java/com/kynzai/petmates/ui/auth/AuthScreen.kt |   402 [32m+[m
+ .../com/kynzai/petmates/ui/events/EventsScreen.kt  |   360 [32m+[m
+ .../java/com/kynzai/petmates/ui/main/MainScreen.kt |   191 [32m+[m
+ .../ui/notifications/NotificationsScreen.kt        |    54 [32m+[m
+ .../kynzai/petmates/ui/profile/NotificationsTab.kt |   278 [32m+[m
+ .../petmates/ui/profile/ProfileEditScreen.kt       |   240 [32m+[m
+ .../kynzai/petmates/ui/profile/ProfileScreen.kt    |   587 [32m+[m
+ .../petmates/ui/profile/UserProfileScreen.kt       |   106 [32m+[m
+ .../petmates/ui/project/ProjectDetailsScreen.kt    |   113 [32m+[m
+ .../petmates/ui/project/ProjectsFeedViewModel.kt   |    76 [32m+[m
+ .../kynzai/petmates/ui/requests/RequestsScreen.kt  |   361 [32m+[m
+ .../java/com/kynzai/petmates/ui/theme/Color.kt     |    14 [32m+[m
+ .../java/com/kynzai/petmates/ui/theme/Theme.kt     |    66 [32m+[m
+ .../main/java/com/kynzai/petmates/ui/theme/Type.kt |    34 [32m+[m
+ .../java/com/kynzai/petmates/ui/users/UsersTab.kt  |   159 [32m+[m
+ .../main/res/drawable/ic_android_black_24dp.xml    |     5 [32m+[m
+ app/src/main/res/drawable/ic_github.xml            |    13 [32m+[m
+ app/src/main/res/drawable/ic_google.xml            |    13 [32m+[m
+ .../main/res/drawable/ic_launcher_background.xml   |   170 [32m+[m
+ .../main/res/drawable/ic_launcher_foreground.xml   |    30 [32m+[m
+ app/src/main/res/drawable/ic_telegram.xml          |    13 [32m+[m
+ app/src/main/res/mipmap-anydpi/ic_launcher.xml     |     6 [32m+[m
+ .../main/res/mipmap-anydpi/ic_launcher_round.xml   |     6 [32m+[m
+ app/src/main/res/mipmap-hdpi/ic_launcher.webp      |   Bin [31m0[m -> [32m1404[m bytes
+ .../main/res/mipmap-hdpi/ic_launcher_round.webp    |   Bin [31m0[m -> [32m2898[m bytes
+ app/src/main/res/mipmap-mdpi/ic_launcher.webp      |   Bin [31m0[m -> [32m982[m bytes
+ .../main/res/mipmap-mdpi/ic_launcher_round.webp    |   Bin [31m0[m -> [32m1772[m bytes
+ app/src/main/res/mipmap-xhdpi/ic_launcher.webp     |   Bin [31m0[m -> [32m1900[m bytes
+ .../main/res/mipmap-xhdpi/ic_launcher_round.webp   |   Bin [31m0[m -> [32m3918[m bytes
+ app/src/main/res/mipmap-xxhdpi/ic_launcher.webp    |   Bin [31m0[m -> [32m2884[m bytes
+ .../main/res/mipmap-xxhdpi/ic_launcher_round.webp  |   Bin [31m0[m -> [32m5914[m bytes
+ app/src/main/res/mipmap-xxxhdpi/ic_launcher.webp   |   Bin [31m0[m -> [32m3844[m bytes
+ .../main/res/mipmap-xxxhdpi/ic_launcher_round.webp |   Bin [31m0[m -> [32m7778[m bytes
+ app/src/main/res/values/colors.xml                 |    10 [32m+[m
+ app/src/main/res/values/strings.xml                |     3 [32m+[m
+ app/src/main/res/values/themes.xml                 |     5 [32m+[m
+ app/src/main/res/xml/backup_rules.xml              |    13 [32m+[m
+ app/src/main/res/xml/data_extraction_rules.xml     |    19 [32m+[m
+ .../java/com/kynzai/petmates/ExampleUnitTest.kt    |    17 [32m+[m
+ build.gradle.kts                                   |    10 [32m+[m
+ data/.gitignore                                    |     1 [32m+[m
+ data/build.gradle.kts                              |    65 [32m+[m
+ .../results.bin => data/consumer-rules.pro         |     0
+ data/proguard-rules.pro                            |    21 [32m+[m
+ .../com/kynzai/data/ExampleInstrumentedTest.kt     |    24 [32m+[m
+ data/src/main/AndroidManifest.xml                  |     4 [32m+[m
+ .../main/java/com/kynzai/data/di/NetworkModule.kt  |    29 [32m+[m
+ .../java/com/kynzai/data/di/RepositoryModule.kt    |    38 [32m+[m
+ .../com/kynzai/data/network/HttpClientFactory.kt   |    41 [32m+[m
+ .../main/java/com/kynzai/data/network/JsonUtils.kt |    20 [32m+[m
+ .../java/com/kynzai/data/network/SupabaseConfig.kt |     7 [32m+[m
+ .../java/com/kynzai/data/remote/JsonParsers.kt     |    14 [32m+[m
+ .../java/com/kynzai/data/remote/SupabaseRestApi.kt |    35 [32m+[m
+ .../java/com/kynzai/data/remote/dto/InviteDto.kt   |    27 [32m+[m
+ .../com/kynzai/data/remote/dto/NotificationDto.kt  |    33 [32m+[m
+ .../java/com/kynzai/data/remote/dto/ProjectDto.kt  |    33 [32m+[m
+ .../com/kynzai/data/remote/dto/ProjectMemberDto.kt |    24 [32m+[m
+ .../java/com/kynzai/data/remote/dto/ResponseDto.kt |    25 [32m+[m
+ .../java/com/kynzai/data/remote/dto/UserDto.kt     |    73 [32m+[m
+ .../java/com/kynzai/data/remote/dto/VacancyDto.kt  |    32 [32m+[m
+ .../com/kynzai/data/remote/mapper/DtoMappers.kt    |   158 [32m+[m
+ .../data/repositories/InviteRepositoryImpl.kt      |    48 [32m+[m
+ .../repositories/NotificationRepositoryImpl.kt     |    33 [32m+[m
+ .../data/repositories/ProjectRepositoryImpl.kt     |    73 [32m+[m
+ .../data/repositories/ResponseRepositoryImpl.kt    |    37 [32m+[m
+ .../kynzai/data/repositories/UserRepositoryImpl.kt |    59 [32m+[m
+ .../data/repositories/VacancyRepositoryImpl.kt     |    43 [32m+[m
+ .../test/java/com/kynzai/data/ExampleUnitTest.kt   |    17 [32m+[m
+ domain/.gitignore                                  |     1 [32m+[m
+ domain/build.gradle.kts                            |    13 [32m+[m
+ domain/src/main/java/com/kynzai/domain/MyClass.kt  |     4 [32m+[m
+ .../main/java/com/kynzai/domain/models/Invite.kt   |    21 [32m+[m
+ .../java/com/kynzai/domain/models/Notification.kt  |    29 [32m+[m
+ .../main/java/com/kynzai/domain/models/Project.kt  |    23 [32m+[m
+ .../java/com/kynzai/domain/models/ProjectMember.kt |    13 [32m+[m
+ .../main/java/com/kynzai/domain/models/Response.kt |    19 [32m+[m
+ .../src/main/java/com/kynzai/domain/models/User.kt |    42 [32m+[m
+ .../main/java/com/kynzai/domain/models/Vacancy.kt  |    16 [32m+[m
+ .../kynzai/domain/repositories/InviteRepository.kt |    12 [32m+[m
+ .../domain/repositories/NotificationRepository.kt  |    10 [32m+[m
+ .../domain/repositories/ProjectRepository.kt       |    14 [32m+[m
+ .../domain/repositories/ResponseRepository.kt      |    12 [32m+[m
+ .../kynzai/domain/repositories/UserRepository.kt   |    11 [32m+[m
+ .../domain/repositories/VacancyRepository.kt       |    10 [32m+[m
+ gradle.properties                                  |    19 [32m+[m
+ gradle/gradle-daemon-jvm.properties                |    12 [32m+[m
+ gradle/libs.versions.toml                          |    52 [32m+[m
+ gradle/wrapper/gradle-wrapper.jar                  |   Bin [31m0[m -> [32m45457[m bytes
+ gradle/wrapper/gradle-wrapper.properties           |     9 [32m+[m
+ gradlew                                            |   251 [32m+[m
+ gradlew.bat                                        |    94 [32m+[m
+ kotlinDslAccessorsReport.txt                       | 38667 [32m+++++++++++++++++++[m
+ settings.gradle.kts                                |    22 [32m+[m
+ 545 files changed, 44493 insertions(+), 5024 deletions(-)
+
+[33mcommit 77a48710629eac15d65275185c7f20401079eef4[m
+Author: Kinza <egort.egort05@mail.ru>
+Date:   Tue Apr 21 13:13:52 2026 +0300
+
+    Первый комит база дизайна готова2
+
+ .../dsl/Accessors8g8q0rlv9fmjeq4kh1pwpag9kKt.class | Bin [31m0[m -> [32m858[m bytes
+ .../dsl/Accessors9vima736ghgz222gu2to8zzdxKt.class | Bin [31m0[m -> [32m842[m bytes
+ .../dsl/Accessors5n84r8d0wlgk7ty6rfnleln5a.kt      |  74 [32m+++++++[m
+ .../dsl/Accessorsakm04274c22y1kwaaolwod9e9.kt      |  67 [32m+++++++[m
+ ...tReleaseImplementationConfigurationAccessors.kt | 214 [32m+++++++++++++++++++++[m
+ ...bugAnnotationProcessorConfigurationAccessors.kt | 214 [32m+++++++++++++++++++++[m
+ .../dsl/Accessors5dsbm02chpefcwvpz3wzdur8u.kt      |  67 [32m+++++++[m
+ .../dsl/Accessors9mkn0up732w3htvamou69sdmiKt.class | Bin [31m0[m -> [32m1327[m bytes
+ .../gradle/kotlin/dsl/ApiConfigurationAccessors.kt | 214 [32m+++++++++++++++++++++[m
+ .../dsl/Accessorserpuo9ri63i4ut3d5pyptv112Kt.class | Bin [31m0[m -> [32m1127[m bytes
+ .../dsl/Accessorsbyjwlb4x74jsdh5ebc6q40o0j.kt      |  67 [32m+++++++[m
+ .../dsl/Accessorsexiottiqdoq5rm4qirwgv19fl.kt      |  67 [32m+++++++[m
+ .../dsl/Accessors8g8q0rlv9fmjeq4kh1pwpag9kKt.class | Bin [31m0[m -> [32m858[m bytes
+ .../dsl/Accessors9vima736ghgz222gu2to8zzdxKt.class | Bin [31m0[m -> [32m842[m bytes
+ .../dsl/Accessorscrbmd2dtip5urbk53zkvzivnmKt.class | Bin [31m0[m -> [32m880[m bytes
+ .../dsl/Accessorscos8dg81v85o3lll35bb03wlq.kt      |  67 [32m+++++++[m
+ .../dsl/Accessors6su2os1zvten8f40s35jyjjy6Kt.class | Bin [31m0[m -> [32m836[m bytes
+ ...endenciesMetadataConfigurationAccessorsKt.class | Bin [31m0[m -> [32m5514[m bytes
+ .../dsl/Accessors5igw27crtgawysfpsiujyw959.kt      |  67 [32m+++++++[m
+ .../dsl/Accessors6su2os1zvten8f40s35jyjjy6.kt      |  67 [32m+++++++[m
+ .../dsl/Accessors6su2os1zvten8f40s35jyjjy6.kt      |  67 [32m+++++++[m
+ .../workspace/classes/Build_gradle$1.class         | Bin [31m0[m -> [32m1465[m bytes
+ .../instrumented/classes/Settings_gradle.class     | Bin [31m0[m -> [32m2078[m bytes
+ .../0000022f9d1b1435fc7a057d4dacf452.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/window-1.5.0/AndroidManifest.xml   |  31 [32m+++[m
+ .../drawable_ic_call_decline.xml.flat              | Bin [31m0[m -> [32m1840[m bytes
+ .../workspace/transformed/loader-1.0.0-runtime     |  23 [32m+++[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../0840628ee48465255e947162e7581c60.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../095d64be5c1b99538f839897d8881c84.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../0ca4e0e1d385c0adbb2b7ebf89b66851.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   0
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../0e4d6d9cca3d809469ef45f8cf4a250d.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   3 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../184083d7e1572ff936c9a52f24a4e984.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../19f768cc803d668d92270c09f82fb8f7.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../1a87ef93e24805c0ede941d12aa3eac9.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../.gradle-instrumented-classpath.marker          |   0
+ .../25fefb07cda9368b72b18e323f806b0b.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../material3/res/values-gu/values-gu.xml          |  69 [32m+++++++[m
+ .../material3/res/values-hi/values-hi.xml          |  69 [32m+++++++[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../2d8dc72b030f460b9785fe240fb21fb8.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../foundation/res/values-hy/values-hy.xml         |   6 [32m+[m
+ .../foundation/res/values-ne/values-ne.xml         |   6 [32m+[m
+ .../workspace/transformed/output.bin               | Bin [31m0[m -> [32m954[m bytes
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../workspace/results.bin                          |   0
+ .../instrumented-kotlin-stdlib-jdk7-2.2.10.jar     | Bin [31m0[m -> [32m1227[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/transformed/foundation-layout/R.txt  |   0
+ .../47939b667eb27b593902619f581b0713.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/core-viewtree-1.0.0/R.txt          |   1 [32m+[m
+ .../analysis/instrumentation-dependencies.bin      | Bin [31m0[m -> [32m148[m bytes
+ .../4ebf4f631fedbff2dedd540cd51ee78e.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/ui-text-runtime/classes.dex        | Bin [31m0[m -> [32m995660[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../anim_mtrl_bottom_sheet_slide_out.xml.flat      | Bin [31m0[m -> [32m844[m bytes
+ ...rl_navigation_bar_colored_ripple_color.xml.flat | Bin [31m0[m -> [32m1580[m bytes
+ .../593aafac9abf448f8ed3c9609b5ce7fd.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   0
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../workspace/results.bin                          |   0
+ .../5c9bb7b72436ce57a6167e088703146b.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../5e6c5feedba75f05577658510ac23e31.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../5f21895ab27fe6b415251d45912a52bf.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../5fb8303d3096655c1a8ef14b96c4ceab.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../hilt-navigation-compose-1.3.0-runtime.jar      | Bin [31m0[m -> [32m9916[m bytes
+ .../workspace/results.bin                          |   2 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../res/layout/m3_auto_complete_simple_item.xml    |  26 [32m+++[m
+ .../.gradle-instrumented-classpath.marker          |   0
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../714f5227c5d6ab8caeb3e29e98544abc.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../7547f18591e25a6514cf28e91b1dda95.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../75486bf65e02a640649836189736a33c.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   0
+ .../drawable_abc_tab_indicator_material.xml.flat   | Bin [31m0[m -> [32m672[m bytes
+ ...io_to_on_mtrl_animation_interpolator_0.xml.flat | Bin [31m0[m -> [32m524[m bytes
+ .../76d5a72930564c98fe6a901ec191b941.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../780ad5c907849eb9795bcbe3b40b4b7c.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../7abb13a51c85d2e7dddc3b6ebab9c975.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../abc_list_longpressed_holo.9.png                | Bin [31m0[m -> [32m94[m bytes
+ .../instrumented/instrumented-common-32.1.0.jar    | Bin [31m0[m -> [32m1230808[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../8507fdb5ae398256360c2ce48123b58b.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../85e1e10c39462cdfa0ddacdf8dca72ba.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../865ee730bde3690596f857ba78703a68.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../8fab540515aa3aac40d6b3b65062d2e3.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../905aaf94201435e63f6f6d25e1eda5e7.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../drawable_ic_mtrl_checked_circle.xml.flat       | Bin [31m0[m -> [32m1032[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../9c1ba13bc5525811c7644d467cc94d9a.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../9e45e723d96c452c26a184f0765f4514.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../a08a7f62ec77f948c96bdb256ed04999.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../a487f656eafa364147b3fb649b106332.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../transformed/runtime-retain/proguard.txt        |   1 [32m+[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../workspace/results.bin                          |   2 [32m+[m
+ .../transformed/kotlinx-coroutines-android-1.9.0   |   7 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../b326dd1a208bc0d66b1406eba2f7b535.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/transformed/ui-tooling/R.txt         |   0
+ .../be3decbb59ac58defb7131e60fd4ff35.lock          | Bin [31m0[m -> [32m17[m bytes
+ ...xxhdpi-v4_abc_btn_check_to_on_mtrl_000.png.flat | Bin [31m0[m -> [32m620[m bytes
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../jars/classes.jar                               | Bin [31m0[m -> [32m231[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../analysis/instrumentation-hierarchy.bin         | Bin [31m0[m -> [32m4601[m bytes
+ .../analysis/instrumentation-hierarchy.bin         | Bin [31m0[m -> [32m612[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../androidx/compose/ui/ui-geometry/LICENSE.txt    | 178 [32m+++++++++++++++++[m
+ .../d0f3e82b753f4217e3d3bfff2c925691.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../hilt/hilt-navigation-compose/LICENSE.txt       | 178 [32m+++++++++++++++++[m
+ .../dba1da53806d0584a79dc93f8a5b8992.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../color_mtrl_popupmenu_overlay_color.xml.flat    | Bin [31m0[m -> [32m540[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   0
+ .../workspace/transformed/output.bin               | Bin [31m0[m -> [32m1660[m bytes
+ .../e4647207e1120aa115ba6aa7eb8d2c32.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../.gradle-instrumented-classpath.marker          |   0
+ .../e544b91b541a40e1b43076e13c5ccd72.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../ui/res/values-en-rGB/values-en-rGB.xml         |  23 [32m+++[m
+ .../transformed/ui/res/values-et/values-et.xml     |  23 [32m+++[m
+ .../analysis/instrumentation-dependencies.bin      | Bin [31m0[m -> [32m179[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../transformed/appcompat-1.6.1/annotations.zip    | Bin [31m0[m -> [32m2394[m bytes
+ .../abc_btn_radio_to_on_mtrl_015.png               | Bin [31m0[m -> [32m356[m bytes
+ .../abc_scrubber_control_to_pressed_mtrl_000.png   | Bin [31m0[m -> [32m145[m bytes
+ .../abc_scrubber_track_mtrl_alpha.9.png            | Bin [31m0[m -> [32m101[m bytes
+ .../cursoradapter-1.0.0/AndroidManifest.xml        |  22 [32m+++[m
+ .../abc_list_longpressed_holo.9.png                | Bin [31m0[m -> [32m101[m bytes
+ .../drawable/abc_ic_menu_paste_mtrl_am_alpha.xml   |  25 [32m+++[m
+ .../jars/classes.jar                               | Bin [31m0[m -> [32m2494[m bytes
+ .../jars/classes.jar                               | Bin [31m0[m -> [32m55055[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../f4623dbbf2b5f56417bc8a89a6b4f151.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/ui/res/values-ur/values-ur.xml     |  23 [32m+++[m
+ .../workspace/metadata.bin                         |   3 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../m3_text_button_foreground_color_selector.xml   |  29 [32m+++[m
+ .../res/color/m3_default_color_primary_text.xml    |  22 [32m+++[m
+ ...l_personalized_color_secondary_text_inverse.xml |  22 [32m+++[m
+ .../workspace/results.bin                          |   0
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../ktor-utils-3.4.2.pom                           |  60 [32m++++++[m
+ .../jna-5.6.0.pom                                  |  53 [32m+++++[m
+ .../asm-commons-9.9.pom                            |  89 [32m+++++++++[m
+ .../descriptor.bin                                 | Bin [31m0[m -> [32m1090[m bytes
+ .../descriptor.bin                                 | Bin [31m0[m -> [32m22141[m bytes
+ .../descriptor.bin                                 | Bin [31m0[m -> [32m1600[m bytes
+ .../gradle-9.3.1/lib/failureaccess-1.0.3.jar       | Bin [31m0[m -> [32m10763[m bytes
+ 180 files changed, 2295 insertions(+)
+
+[33mcommit b93ce724a7074628461c7a9ec6e8d8181f6b2ca0[m
+Author: Kinza <egort.egort05@mail.ru>
+Date:   Tue Apr 21 13:11:14 2026 +0300
+
+    Первый комит база дизайна готова
+
+ .../dm/LibrariesForLibs$BundleAccessors.class      | Bin [31m0[m -> [32m756[m bytes
+ .../dsl/Accessorscrbmd2dtip5urbk53zkvzivnmKt.class | Bin [31m0[m -> [32m880[m bytes
+ .../dsl/Accessorsf2dmt7j4b6zf7h6v6t1p19cagKt.class | Bin [31m0[m -> [32m846[m bytes
+ ...sDebugCompileOnlyConfigurationAccessorsKt.class | Bin [31m0[m -> [32m5484[m bytes
+ .../dsl/Accessors7tjndw5dv7mzft439ljcweyxb.kt      |  67 [32m++++++[m
+ .../dsl/Accessorsbu4celzmx94h5ebu8epruan0bKt.class | Bin [31m0[m -> [32m1140[m bytes
+ .../dsl/Accessorserpuo9ri63i4ut3d5pyptv112.kt      |  74 [32m+++++++[m
+ .../dsl/Accessors8g8q0rlv9fmjeq4kh1pwpag9kKt.class | Bin [31m0[m -> [32m858[m bytes
+ ...aseImplementationConfigurationAccessorsKt.class | Bin [31m0[m -> [32m5463[m bytes
+ .../dsl/Accessorsbb09k6f0e70kui44t8hkezd80.kt      |  67 [32m++++++[m
+ .../gradle/kotlin/dsl/ApiConfigurationAccessors.kt | 214 [32m+++++++++++++++++++[m
+ ...aseImplementationConfigurationAccessorsKt.class | Bin [31m0[m -> [32m5475[m bytes
+ .../dsl/Accessors5igw27crtgawysfpsiujyw959Kt.class | Bin [31m0[m -> [32m850[m bytes
+ .../dsl/Accessors2sci8yewa96g0fyfhouaecr70.kt      |  74 [32m+++++++[m
+ .../dsl/Accessors61kov99om1lnxmyq7nrdnwe8o.kt      |  67 [32m++++++[m
+ .../dsl/Accessors755qfgs1mebxgj2rkmtzq31iw.kt      |  74 [32m+++++++[m
+ .../dsl/Accessorsbu4celzmx94h5ebu8epruan0bKt.class | Bin [31m0[m -> [32m1140[m bytes
+ .../dsl/Accessors87ap2xullvrl5slfxppy00733.kt      |  67 [32m++++++[m
+ ...bugAnnotationProcessorConfigurationAccessors.kt | 214 [32m+++++++++++++++++++[m
+ .../dsl/TestRuntimeOnlyConfigurationAccessors.kt   | 214 [32m+++++++++++++++++++[m
+ ...notationProcessorConfigurationAccessorsKt.class | Bin [31m0[m -> [32m5514[m bytes
+ .../dsl/Accessors3k3m07x2cnwcqo7oawsqxr192.kt      |  67 [32m++++++[m
+ .../dsl/Accessors4utk9s9wkq1gwnfaumz2ci2i4Kt.class | Bin [31m0[m -> [32m754[m bytes
+ .../dsl/Accessors5igw27crtgawysfpsiujyw959.kt      |  67 [32m++++++[m
+ .../workspace/classes/Build_gradle.class           | Bin [31m0[m -> [32m6037[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../hilt-navigation-compose-1.3.0-runtime          |   1 [32m+[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../04849537a4f20212fb15d5311fa6d381.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../android/build/gradle/aar-metadata.properties   |   6 [32m+[m
+ .../workspace/results.bin                          |   2 [32m+[m
+ .../0836aaf34a99503936d6b84e4411d769.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../drawable_notification_tile_bg.xml.flat         | Bin [31m0[m -> [32m528[m bytes
+ .../0c56c0b4e1523936ee726096b9ef22a4.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/androidx.cursoradapter-r.txt       |   1 [32m+[m
+ .../13175e9d93b4565b993df2679132f797.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   0
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../1dffc5f22035311828074b652b500f2d.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../22a048f7cb0dba686ba9be421364e5b2.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../22cbb03b7706ea8628ae384f6f6c1bc7.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../savedstate-ktx-1.4.0/res/values/values.xml     |   3 [32m+[m
+ .../workspace/results.bin                          |   0
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../299b49db6c266d6be6024af0d97e74dd.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../2f80df0b6286123cf7583617d454f6ff.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../lifecycle-viewmodel-ktx-2.10.0/R.txt           |   0
+ .../analysis/instrumentation-dependencies.bin      | Bin [31m0[m -> [32m6983[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../37fa61c757ed94b4f1ae6597badf7266.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../383d83930674c92e4daf19cc90139197.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../3a201ac5f4c3fc52b5424c7da470e3d8.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../443a218a286d7c752fbec53e262daf55.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/startup-runtime-1.1.1/public.txt   |   0
+ .../workspace/results.bin                          |   0
+ .../workspace/results.bin                          |   1 [32m+[m
+ ...trumented-kotlinx-coroutines-core-jvm-1.9.0.jar | Bin [31m0[m -> [32m3382589[m bytes
+ .../workspace/results.bin                          |   0
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../4e53fe430d2dfed02a95f1db28a2a1d0.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../4ff6846a636da782b2a0e2e381e07e65.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../50227e78a7c01571da47ff6e25631625.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../546acf4620496906bf1c8b03902fe888.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../5507743dd2f272f5ae62fec1a4b9d3ef.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../56ebce8fc3a17e3aaa37a557e3db42e9.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../color_m3_radiobutton_button_tint.xml.flat      | Bin [31m0[m -> [32m3176[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../5ba05a1e9b580631df2b6f0b4771ac2e.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/transformed/output.bin               | Bin [31m0[m -> [32m1246815[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../navigation/navigation-compose/LICENSE.txt      | 178 [32m++++++++++++++++[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../5ed4dc49653eb0585ed5da1705b9936c.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/results.bin                          |   3 [32m+[m
+ .../6442f15f8679b6cc71362df811f18af3.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/androidx.appcompat.resources-r.txt |   7 [32m+[m
+ .../material3/res/values-ml/values-ml.xml          |  69 [32m+++++++[m
+ .../anim_abc_slide_out_top.xml.flat                | Bin [31m0[m -> [32m688[m bytes
+ ...i-v4_abc_btn_switch_to_on_mtrl_00012.9.png.flat | Bin [31m0[m -> [32m1148[m bytes
+ ...bc_list_selector_disabled_holo_light.9.png.flat | Bin [31m0[m -> [32m552[m bytes
+ ...i-v4_abc_text_select_handle_right_mtrl.png.flat | Bin [31m0[m -> [32m748[m bytes
+ ...drawable_abc_item_background_holo_dark.xml.flat | Bin [31m0[m -> [32m1888[m bytes
+ .../layout_abc_cascading_menu_item_layout.xml.flat | Bin [31m0[m -> [32m3872[m bytes
+ .../transformed/ui-util-runtime/classes.dex        | Bin [31m0[m -> [32m29780[m bytes
+ .../workspace/transformed/ui-tooling-api.jar       | Bin [31m0[m -> [32m456723[m bytes
+ .../6b9e469a20adbb8a25341812537fc4df.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../res/color/mtrl_filled_stroke_color.xml         |  23 [32m+++[m
+ .../res/color/mtrl_tabs_colored_ripple_color.xml   |  26 [32m+++[m
+ .../7070d943b21d26eb616920e6aec2e701.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../726cfe2ff1418662805e4b14d31d83b9.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   3 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/transformed/output.bin               | Bin [31m0[m -> [32m844[m bytes
+ .../780dda12c2c275c1153315fd616bca08.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../7891b4b468646d9cef637335491aa561.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../7993e2e0aadf7f3ab7c7a4315c835e35.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../abc_ab_share_pack_mtrl_alpha.9.png             | Bin [31m0[m -> [32m112[m bytes
+ .../abc_tab_indicator_mtrl_alpha.9.png             | Bin [31m0[m -> [32m106[m bytes
+ .../abc_search_dropdown_item_icons_2line.xml       |  85 [32m++++++++[m
+ .../workspace/results.bin                          |   2 [32m+[m
+ .../workspace/results.bin                          |   0
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../drawable_ic_call_answer_video.xml.flat         | Bin [31m0[m -> [32m1092[m bytes
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../workspace/results.bin                          |   0
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../animator_design_fab_hide_motion_spec.xml.flat  | Bin [31m0[m -> [32m1396[m bytes
+ ...mtrl_checkbox_button_checked_unchecked.xml.flat | Bin [31m0[m -> [32m4304[m bytes
+ .../layout_mtrl_alert_select_dialog_item.xml.flat  | Bin [31m0[m -> [32m1116[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../941c17fb4a179205eac5f020d42d7287.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../9444e6940ab8ce34aa46cc0bf47baca1.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../95c671e3ea4461289fe66005ff811068.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../98830d9bce7e3b088eab6b0a1761063f.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../9f85ea6441f82f2912197878a0019836.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../a71ed7b7fe5dd68b783fd9449cd29d65.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../a778e40c477400654f78f75ad27a9e14.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   0
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../transformed/runtime-retain/jars/lint.jar       | Bin [31m0[m -> [32m1109189[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../ac6c2a3f48bc29b9eec2ac4a7304eb93.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../ad2cdc3f31d0adf2c54eca064b69ee5d.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m111[m bytes
+ .../documentfile-1.0.0/jars/classes.jar            | Bin [31m0[m -> [32m11278[m bytes
+ .../b03a38ecd2781322943741dea0a77d29.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../transformed/versionedparcelable-1.1.1-api.jar  | Bin [31m0[m -> [32m70999[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../transformed/savedstate-compose-api.jar         | Bin [31m0[m -> [32m27243[m bytes
+ .../b847902e7165c990f24cfc85e96dd809.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../b899bf0c58c2d3c74745e9369a987faf.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/transformed/ktor-http-cio-jvm-3.4.2  |  62 [32m++++++[m
+ .../workspace/transformed/ui-tooling/public.txt    |   0
+ .../workspace/results.bin                          |   0
+ .../foundation/res/values-hi/values-hi.xml         |   6 [32m+[m
+ ...-xhdpi-v4_abc_btn_check_to_on_mtrl_000.png.flat | Bin [31m0[m -> [32m596[m bytes
+ ...v4_abc_scrubber_control_off_mtrl_alpha.png.flat | Bin [31m0[m -> [32m592[m bytes
+ .../layout_abc_action_mode_bar.xml.flat            | Bin [31m0[m -> [32m744[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../c3a6118e1d5c70308876b729aa4e43fe.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../ccc89509489fe017cfd6a02b0ef0fea7.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../.gradle-instrumented-classpath.marker          |   0
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m110[m bytes
+ .../androidx.hilt.lifecycle.viewmodel-r.txt        |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../d444b5d2be5b527b5574294f7b99dde8.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../transformed/ui-tooling/AndroidManifest.xml     |  28 [32m+++[m
+ ...ial_ic_keyboard_arrow_right_black_24dp.xml.flat | Bin [31m0[m -> [32m1140[m bytes
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../aapt2-9.1.0-14792394-windows/aapt2.exe         | Bin [31m0[m -> [32m4993024[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../cardview-1.0.0/res/values/values.xml           |  54 [32m+++++[m
+ .../e43c46de1812069fd6c829ac0e79c896.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../ui/res/values-pt-rPT/values-pt-rPT.xml         |  23 [32m+++[m
+ .../appcompat-1.6.1/res/values-kn/values-kn.xml    |  31 [32m+++[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../e70d22d171c62d85470dd7703c8c32da.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../ea4f8268783f9071b93fc629a16ad99c.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../eaa13ceb9a6a782be3b3b07d4242a3be.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   2 [32m+[m
+ .../eb525949bd5999962468fa987a807cfd.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../eb63286918875da6435804acb1fffba9.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../btn_radio_to_on_mtrl_dot_group_animation.xml   |  65 [32m++++++[m
+ .../abc_scrubber_track_mtrl_alpha.9.png            | Bin [31m0[m -> [32m110[m bytes
+ .../material/res/values-ar/values-ar.xml           |   4 [32m+[m
+ .../material/res/values-is/values-is.xml           |   4 [32m+[m
+ .../eda672d880d19da0f8dea3a95bc3273e.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../hilt-lifecycle-viewmodel-1.3.0-runtime.jar     | Bin [31m0[m -> [32m2708[m bytes
+ .../transformed/dynamicanimation-1.0.0-runtime.jar | Bin [31m0[m -> [32m75174[m bytes
+ .../f0dfa14ba0d33afdaa41ea239eae3c9f.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   0
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../workspace/metadata.bin                         | Bin [31m0[m -> [32m111[m bytes
+ .../.gradle-instrumented-classpath.marker          |   0
+ .../f361e3a05cc83ad61e054c6391d3e4f1.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../transformed/ui/res/values-hy/values-hy.xml     |  23 [32m+++[m
+ .../transformed/ui/res/values-ne/values-ne.xml     |  23 [32m+++[m
+ .../f922924ff60c50c1b4ac895fdc2139c0.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../workspace/results.bin                          |   1 [32m+[m
+ .../res/color/m3_appbar_overlay_color.xml          |  21 [32m++[m
+ .../res/layout/mtrl_calendar_day.xml               |  20 [32m++[m
+ .../material-1.10.0/res/values-mn/values-mn.xml    |  75 [32m+++++++[m
+ .../m3_timepicker_button_background_color.xml      |  20 [32m++[m
+ .../res/layout/material_clock_display_divider.xml  |  26 [32m+++[m
+ .../workspace/metadata.bin                         |   1 [32m+[m
+ .../ff133ae9ba2c3dd0eb33e6638f27b826.lock          | Bin [31m0[m -> [32m17[m bytes
+ .../runtime-saveable.aar                           | Bin [31m0[m -> [32m1058083[m bytes
+ .../runtime-saveable-1.10.4.pom                    | 117 [32m+++++++++++[m
+ .../fragment-1.3.6.pom                             | 110 [32m++++++++++[m
+ .../viewpager-1.0.0.aar                            | Bin [31m0[m -> [32m53513[m bytes
+ .../protobuf-java-3.25.5.pom                       |  41 [32m++++[m
+ .../kotlin-bom-1.8.22.pom                          | 230 [32m+++++++++++++++++++++[m
+ .../kotlin-gradle-plugin-annotations-2.2.10.jar    | Bin [31m0[m -> [32m4689[m bytes
+ .../descriptor.bin                                 | Bin [31m0[m -> [32m7474[m bytes
+ .../descriptor.bin                                 | Bin [31m0[m -> [32m19734[m bytes
+ .../descriptor.bin                                 | Bin [31m0[m -> [32m358[m bytes
+ .../gradle-9.3.1/lib/groovy-nio-4.0.29.jar         | Bin [31m0[m -> [32m16242[m bytes
+ .../lib/plugins/google-http-client-gson-1.42.2.jar | Bin [31m0[m -> [32m10580[m bytes
+ 245 files changed, 2729 insertions(+)
