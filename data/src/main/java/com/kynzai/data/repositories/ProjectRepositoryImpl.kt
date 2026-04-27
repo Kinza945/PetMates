@@ -7,6 +7,7 @@ import com.kynzai.data.remote.dto.ProjectMemberDto
 import com.kynzai.data.remote.dto.VacancyDto
 import com.kynzai.data.remote.firstObjectFromArray
 import com.kynzai.data.remote.mapper.toDomain
+import com.kynzai.data.remote.objectFromRpc
 import com.kynzai.data.remote.putNullable
 import com.kynzai.data.remote.toWire
 import com.kynzai.domain.models.Project
@@ -116,4 +117,22 @@ class ProjectRepositoryImpl @Inject constructor(
         ).mapCatching { raw ->
             ProjectDto.fromJson(firstObjectFromArray(raw)).toDomain()
         }
+
+    override suspend fun rateProject(projectId: UUID): Result<Project> =
+        api.postRpcJson(
+            functionName = "rate_project",
+            bodyJson = JSONObject()
+                .put("p_project_id", projectId.toString())
+                .toString()
+        ).mapCatching { raw ->
+            ProjectDto.fromJson(objectFromRpc(raw)).toDomain()
+        }
+
+    override suspend fun deleteProject(projectId: UUID): Result<Unit> =
+        api.postRpcJson(
+            functionName = "delete_project",
+            bodyJson = JSONObject()
+                .put("p_project_id", projectId.toString())
+                .toString()
+        ).map { Unit }
 }

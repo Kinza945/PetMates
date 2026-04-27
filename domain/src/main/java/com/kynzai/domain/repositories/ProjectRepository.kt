@@ -40,11 +40,14 @@ interface ProjectRepository {
         Result.failure(UnsupportedOperationException("updateProject is not implemented"))
 
     /**
-     * Project rating is a server-sensitive operation: real backend should protect it
-     * from duplicated votes atomically. Mock layer implements it locally for UI flows.
+     * Оценка проекта чувствительна к конкурентности: real backend должен атомарно
+     * защищать её от повторных голосов. Mock-слой реализует это локально для UI-сценариев.
      */
     suspend fun rateProject(projectId: UUID): Result<Project> =
         Result.failure(UnsupportedOperationException("rateProject requires backend RPC"))
+
+    suspend fun deleteProject(projectId: UUID): Result<Unit> =
+        Result.failure(UnsupportedOperationException("deleteProject is not implemented"))
 
     /**
      * Контракт под ленту (feed). По умолчанию реализован на базе getAllProjects() (клиентская пагинация).

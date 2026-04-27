@@ -6,6 +6,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -28,6 +30,9 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,10 +40,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +65,16 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.kynzai.petmates.ui.common.AuthRequiredScreen
+import com.kynzai.petmates.ui.common.ScreenState
+import com.kynzai.petmates.ui.common.UiEvent
+import com.kynzai.petmates.ui.mappers.ContactUi
+import com.kynzai.petmates.ui.mappers.ProjectUi
+import com.kynzai.petmates.ui.mappers.UserUi
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
 import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
@@ -71,49 +90,75 @@ private enum class ProfileTab { Info, Activity, Notifications, Settings }
 @Composable
 fun ProfileScreen(
     onCreateProjectClick: () -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
+    onLogoutComplete: () -> Unit = {},
+    onAuthRequested: () -> Unit = {},
+    onOpenProject: (String) -> Unit = {},
+    onEditProject: (String) -> Unit = {},
+    onCreateVacancy: (String) -> Unit = {},
+    onOpenVacancy: (String) -> Unit = {},
+    vm: ProfileViewModel = hiltViewModel(),
 ) {
-    // Keeping "current data" as-is (hardcoded), but layout is now mobile-friendly.
-    val nickname = "DogI1X"
-    val realName = "Гринькин Вадим"
-    val role = "Python Data Science"
-    val age = "21 год"
-    val country = "Россия"
-    val city = "Краснодар"
-    val workplace = "ИМСИТ"
-    val description =
-        "Добавлю немного описания, чтобы быть самым модным на районе. Буду рад, если смогу научиться чему-нибудь интересному."
-    val contacts = listOf(
-        "Telegram" to "https://t.me/dog_i1x",
-        "VK" to "https://vk.com/dog_i1x",
-        "GitHub" to "https://github.com/dog_i1x",
-        "YouTube" to "https://www.youtube.com/@spektr.project",
-        "Portfolio" to "https://example.com/portfolio",
-    )
-    val hardSkills = listOf(
-        "#kotlin",
-        "#compose",
-        "#ktor",
-        "#csharp",
-        "#rest",
-        "#patterns",
-        "#ui/ux",
-        "#git",
-        "#design",
-        "#databases",
-        "#postgres",
-        "#supabase",
-    )
-    val softSkills = listOf("#communication", "#teamwork", "#ownership", "#curiosity", "#величайший")
-
+    val state by vm.state.collectAsState()
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var selectedTab by rememberSaveable { mutableIntStateOf(ProfileTab.Info.ordinal) }
     val safeTabIndex = selectedTab.coerceIn(0, ProfileTab.entries.lastIndex)
+
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            if (event is UiEvent.ShowMessage) {
+                Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) vm.refresh()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    when (val s = state) {
+        ScreenState.Loading -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PetMatesPrimary)
+            }
+            return
+        }
+
+        ScreenState.Unauthorized -> {
+            AuthRequiredScreen(
+                message = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
+                onAuthClick = onAuthRequested,
+            )
+            return
+        }
+
+        is ScreenState.Error -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                    Text(s.message, color = PetMatesTextSecondary)
+                    Button(onClick = vm::refresh, modifier = Modifier.padding(top = 16.dp), colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary)) {
+                        Text("Повторить")
+                    }
+                }
+            }
+            return
+        }
+
+        is ScreenState.Content -> {
+            val profile = s.value
+            val user = profile.user
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(PetMatesSurface)
     ) {
-        // Header (centered)
+        // Шапка профиля: теперь данные приходят из ProfileViewModel, а не из hardcoded макета.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -131,18 +176,18 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = nickname,
+                text = user.nickname,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = PetMatesTextPrimary
             )
             Text(
-                text = realName,
+                text = user.realName.ifBlank { "Имя не указано" },
                 fontSize = 14.sp,
                 color = PetMatesTextSecondary
             )
             Text(
-                text = role,
+                text = user.profileRole.ifBlank { "Роль не указана" },
                 fontSize = 16.sp,
                 color = PetMatesPrimary,
                 modifier = Modifier.padding(top = 8.dp)
@@ -153,9 +198,9 @@ fun ProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedInfoChip(country)
-                OutlinedInfoChip(city)
-                OutlinedInfoChip(workplace)
+                listOf(user.country, user.city, user.workplace)
+                    .filter { it.isNotBlank() }
+                    .forEach { OutlinedInfoChip(it) }
             }
 
             Row(
@@ -165,7 +210,7 @@ fun ProfileScreen(
             ) {
                 Text(text = "• онлайн", color = OnlineGreen, fontSize = 12.sp)
                 Text(
-                    text = "  $age • $city • $workplace",
+                    text = listOf(user.age, user.city, user.workplace).filter { it.isNotBlank() }.joinToString(" • ", prefix = "  "),
                     color = PetMatesTextSecondary,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -176,15 +221,28 @@ fun ProfileScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(
-            onClick = onCreateProjectClick,
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(text = "Создать проект", fontWeight = FontWeight.Bold)
+            Button(
+                onClick = onCreateProjectClick,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+            ) {
+                Text(text = "Создать проект", fontWeight = FontWeight.Bold)
+            }
+            OutlinedButton(
+                onClick = onEditProfileClick,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = PetMatesPrimary)
+            ) {
+                Text(text = "Редактировать", fontWeight = FontWeight.Bold)
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -225,25 +283,41 @@ fun ProfileScreen(
             )
         }
 
-        // Tab content must have bounded height to avoid nested-scroll infinity constraints.
+        // Контент вкладок должен иметь ограниченную высоту, иначе Compose падает на вложенных scroll-контейнерах.
         Box(modifier = Modifier.weight(1f)) {
             when (ProfileTab.entries.getOrNull(selectedTab) ?: ProfileTab.Info) {
                 ProfileTab.Info -> InfoTab(
                     modifier = Modifier.fillMaxSize(),
-                    description = description,
-                    contacts = contacts,
-                    hardSkills = hardSkills,
-                    softSkills = softSkills,
+                    description = user.description,
+                    contacts = user.contacts,
+                    hardSkills = user.hardSkills,
+                    softSkills = user.softSkills,
                 )
 
-                ProfileTab.Activity -> PlaceholderTab(
+                ProfileTab.Activity -> ActivityTab(
                     modifier = Modifier.fillMaxSize(),
-                    title = "Активность"
+                    myProjects = profile.myProjects,
+                    myResponses = profile.myResponses,
+                    myInvites = profile.myInvites,
+                    onOpenProject = onOpenProject,
+                    onEditProject = onEditProject,
+                    onCreateVacancy = onCreateVacancy,
+                    onOpenVacancy = onOpenVacancy,
+                    onCancelResponse = vm::cancelResponse,
+                    onAcceptInvite = vm::acceptInvite,
+                    onDeclineInvite = vm::declineInvite,
                 )
 
                 ProfileTab.Notifications -> NotificationsRoute(modifier = Modifier.fillMaxSize())
-                ProfileTab.Settings -> SettingsTab(accountName = nickname, modifier = Modifier.fillMaxSize())
+                ProfileTab.Settings -> SettingsTab(
+                    accountName = user.nickname,
+                    modifier = Modifier.fillMaxSize(),
+                    onEditProfileClick = onEditProfileClick,
+                    onLogoutComplete = onLogoutComplete,
+                )
             }
+        }
+    }
         }
     }
 }
@@ -274,7 +348,7 @@ private fun PlaceholderTab(
 @Composable
 private fun InfoTab(
     description: String,
-    contacts: List<Pair<String, String>>,
+    contacts: List<ContactUi>,
     hardSkills: List<String>,
     softSkills: List<String>,
     modifier: Modifier = Modifier,
@@ -295,9 +369,9 @@ private fun InfoTab(
         item {
             SectionTitle("Для связи:")
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                contacts.forEach { (name, link) ->
+                contacts.forEach { contact ->
                     Text(
-                        text = "$name: $link",
+                        text = "${contact.name}: ${contact.link}",
                         color = PetMatesTextPrimary,
                         fontSize = 14.sp,
                         maxLines = 2,
@@ -332,6 +406,139 @@ private fun InfoTab(
 }
 
 @Composable
+private fun ActivityTab(
+    myProjects: List<ProjectUi>,
+    myResponses: List<ProfileResponseUi>,
+    myInvites: List<ProfileInviteUi>,
+    onOpenProject: (String) -> Unit,
+    onEditProject: (String) -> Unit,
+    onCreateVacancy: (String) -> Unit,
+    onOpenVacancy: (String) -> Unit,
+    onCancelResponse: (String) -> Unit,
+    onAcceptInvite: (String) -> Unit,
+    onDeclineInvite: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        item { SectionTitle("Мои проекты") }
+        if (myProjects.isEmpty()) {
+            item { EmptyActivityText("У вас пока нет проектов.") }
+        } else {
+            items(myProjects, key = { it.id }) { project ->
+                ActivityCard {
+                    Text(project.name, color = PetMatesTextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(project.shortDescription, color = PetMatesTextSecondary, modifier = Modifier.padding(top = 4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { onOpenProject(project.id) },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+                        ) { Text("Открыть") }
+                        OutlinedButton(onClick = { onEditProject(project.id) }, modifier = Modifier.weight(1f)) {
+                            Text("Редактировать")
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = { onCreateVacancy(project.id) },
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
+                    ) {
+                        Text("Добавить вакансию")
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Мои отклики") }
+        if (myResponses.isEmpty()) {
+            item { EmptyActivityText("Вы пока не откликались на вакансии.") }
+        } else {
+            items(myResponses, key = { it.responseId }) { response ->
+                ActivityCard {
+                    Text(response.projectName, color = PetMatesPrimary, fontWeight = FontWeight.Bold)
+                    Text("Отклик на роль «${response.vacancyTitle}»", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
+                    Text(response.statusLabel, color = PetMatesTextSecondary, modifier = Modifier.padding(top = 6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(onClick = { onOpenVacancy(response.vacancyId) }, modifier = Modifier.weight(1f)) {
+                            Text("Открыть")
+                        }
+                        if (response.isPending) {
+                            OutlinedButton(
+                                onClick = { onCancelResponse(response.responseId) },
+                                modifier = Modifier.weight(1f),
+                                border = BorderStroke(1.dp, Danger),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
+                            ) {
+                                Text("Отменить")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Мои приглашения") }
+        if (myInvites.isEmpty()) {
+            item { EmptyActivityText("Входящих приглашений пока нет.") }
+        } else {
+            items(myInvites, key = { it.inviteId }) { invite ->
+                ActivityCard {
+                    Text(invite.projectName, color = PetMatesPrimary, fontWeight = FontWeight.Bold)
+                    Text("Роль: ${invite.role}", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
+                    Text(invite.statusLabel, color = PetMatesTextSecondary, modifier = Modifier.padding(top = 6.dp))
+                    if (invite.isPending) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Button(
+                                onClick = { onAcceptInvite(invite.inviteId) },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+                            ) { Text("Принять") }
+                            OutlinedButton(
+                                onClick = { onDeclineInvite(invite.inviteId) },
+                                modifier = Modifier.weight(1f),
+                                border = BorderStroke(1.dp, Danger),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
+                            ) { Text("Отклонить") }
+                        }
+                    }
+                }
+            }
+        }
+
+        item { Spacer(modifier = Modifier.height(24.dp)) }
+    }
+}
+
+@Composable
+private fun ActivityCard(content: @Composable ColumnScope.() -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = PetMatesSurface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp), content = content)
+    }
+}
+
+@Composable
+private fun EmptyActivityText(text: String) {
+    Text(text = text, color = PetMatesTextSecondary, modifier = Modifier.padding(bottom = 4.dp))
+}
+
+@Composable
 private fun SectionTitle(text: String) {
     Text(
         text = text,
@@ -357,137 +564,230 @@ private fun Chip(text: String, background: Color) {
 fun SettingsTab(
     accountName: String,
     modifier: Modifier = Modifier,
+    onEditProfileClick: () -> Unit = {},
+    onLogoutComplete: () -> Unit = {},
+    vm: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    var oldPassword by rememberSaveable { mutableStateOf("") }
-    var newPassword by rememberSaveable { mutableStateOf("") }
-    var confirmPassword by rememberSaveable { mutableStateOf("") }
-
-    var currentEmail by rememberSaveable { mutableStateOf("") }
-    var newEmail by rememberSaveable { mutableStateOf("") }
-    var emailCode by rememberSaveable { mutableStateOf("") }
-
-    var oldVisible by rememberSaveable { mutableStateOf(false) }
-    var newVisible by rememberSaveable { mutableStateOf(false) }
-    var confirmVisible by rememberSaveable { mutableStateOf(false) }
-
+    val state by vm.state.collectAsState()
+    var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            when (event) {
+                UiEvent.AuthRequired -> onLogoutComplete()
+                is UiEvent.ShowMessage -> Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+                else -> Unit
+            }
+        }
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .testTag("profile_settings_tab"),
+            modifier = Modifier.fillMaxSize().testTag("profile_settings_tab"),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            item {
-                Text(
-                    text = "Безопасность",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = PetMatesTextPrimary,
-                )
-            }
+            item { SettingsHeader(accountName = accountName) }
 
             item {
-                Text(text = "Смена пароля:", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = PetMatesTextPrimary)
-            }
-
-            item {
-                PasswordField(
-                    label = "Старый пароль",
-                    value = oldPassword,
-                    onValueChange = { oldPassword = it },
-                    visible = oldVisible,
-                    onToggle = { oldVisible = !oldVisible }
-                )
-            }
-            item {
-                PasswordField(
-                    label = "Новый пароль",
-                    value = newPassword,
-                    onValueChange = { newPassword = it },
-                    visible = newVisible,
-                    onToggle = { newVisible = !newVisible }
-                )
-            }
-            item {
-                PasswordField(
-                    label = "Подтверждение пароля",
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    visible = confirmVisible,
-                    onToggle = { confirmVisible = !confirmVisible }
-                )
-            }
-
-            item {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = "Смена почты:",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = PetMatesTextPrimary
-                )
-            }
-
-            item { PlainField(label = "Текущая почта", value = currentEmail, onValueChange = { currentEmail = it }) }
-            item { PlainField(label = "Новая почта", value = newEmail, onValueChange = { newEmail = it }) }
-            item { PlainField(label = "Код подтверждения", value = emailCode, onValueChange = { emailCode = it }) }
-
-            item {
-                Button(
-                    onClick = {
-                        Toast.makeText(context, "Изменения сохранены (мок)", Toast.LENGTH_SHORT).show()
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
-                ) {
-                    Text(text = "Сохранить изменения", fontWeight = FontWeight.Bold)
+                SettingsCard(title = "Аккаунт") {
+                    SettingsActionRow(
+                        title = "Редактировать профиль",
+                        subtitle = "Имя, город, роль, навыки и контакты",
+                        onClick = onEditProfileClick,
+                    )
+                    HorizontalDivider()
+                    SettingsActionRow(
+                        title = "Сменить почту",
+                        subtitle = "Mock-сценарий до подключения Auth API",
+                        onClick = vm::changeEmail,
+                    )
+                    HorizontalDivider()
+                    SettingsActionRow(
+                        title = "Сменить пароль",
+                        subtitle = "Mock-сценарий до подключения Auth API",
+                        onClick = vm::changePassword,
+                    )
                 }
             }
 
-            item { HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp)) }
-
             item {
-                Text(
-                    text = "Удаление аккаунта",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    color = Danger
-                )
-                Text(
-                    text = "Это действие необратимо. Ваш аккаунт будет удалён навсегда со всеми данными.",
-                    fontSize = 14.sp,
-                    color = PetMatesTextSecondary,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
-            }
-
-            item {
-                OutlinedButton(
-                    onClick = { showDeleteDialog = true },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Danger),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
-                ) {
-                    Text("Удалить аккаунт", fontWeight = FontWeight.Bold)
+                SettingsCard(title = "Уведомления") {
+                    SettingsSwitchRow(
+                        title = "Отклики",
+                        subtitle = "Новые отклики и изменение статуса",
+                        checked = state.responseNotifications,
+                        onCheckedChange = vm::setResponseNotifications,
+                    )
+                    HorizontalDivider()
+                    SettingsSwitchRow(
+                        title = "Приглашения",
+                        subtitle = "Входящие приглашения в проекты",
+                        checked = state.inviteNotifications,
+                        onCheckedChange = vm::setInviteNotifications,
+                    )
+                    HorizontalDivider()
+                    SettingsSwitchRow(
+                        title = "Проекты",
+                        subtitle = "Обновления статуса и активности",
+                        checked = state.projectNotifications,
+                        onCheckedChange = vm::setProjectNotifications,
+                    )
                 }
             }
+
+            item {
+                SettingsCard(title = "Безопасность") {
+                    SettingsActionRow(
+                        title = "Выйти из аккаунта",
+                        subtitle = "Завершить текущую mock-сессию",
+                        titleColor = Danger,
+                        onClick = { showLogoutDialog = true },
+                    )
+                }
+            }
+
+            item {
+                SettingsCard(title = "Опасная зона", titleColor = Danger) {
+                    Text(
+                        text = "Удаление аккаунта пока работает как mock-заглушка. После подключения API здесь будет подтверждение и серверное удаление.",
+                        color = PetMatesTextSecondary,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                    )
+                    OutlinedButton(
+                        onClick = { showDeleteDialog = true },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, Danger),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
+                    ) {
+                        Text("Удалить аккаунт", fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+
+        if (showLogoutDialog) {
+            LogoutDialog(
+                isBusy = state.isBusy,
+                onDismiss = { showLogoutDialog = false },
+                onConfirm = {
+                    showLogoutDialog = false
+                    vm.logout()
+                }
+            )
         }
 
         if (showDeleteDialog) {
-            DeleteAccountDialog(
-                accountName = accountName,
-                onDismiss = { showDeleteDialog = false }
-            )
+            DeleteAccountDialog(accountName = accountName, onDismiss = { showDeleteDialog = false }, onConfirm = vm::deleteAccount)
         }
     }
+}
+
+@Composable
+private fun SettingsHeader(accountName: String) {
+    Column {
+        Text("Настройки", fontWeight = FontWeight.Bold, fontSize = 22.sp, color = PetMatesTextPrimary)
+        Text(
+            text = "Аккаунт @$accountName",
+            color = PetMatesTextSecondary,
+            fontSize = 14.sp,
+            modifier = Modifier.padding(top = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun SettingsCard(
+    title: String,
+    titleColor: Color = PetMatesTextPrimary,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = PetMatesSurface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column {
+            Text(
+                text = title,
+                color = titleColor,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+            )
+            content()
+        }
+    }
+}
+
+@Composable
+private fun SettingsActionRow(
+    title: String,
+    subtitle: String,
+    titleColor: Color = PetMatesTextPrimary,
+    onClick: () -> Unit,
+) {
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+            Text(title, color = titleColor, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = PetMatesTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
+        }
+    }
+}
+
+@Composable
+private fun SettingsSwitchRow(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, color = PetMatesTextPrimary, fontWeight = FontWeight.Bold)
+            Text(subtitle, color = PetMatesTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
+    }
+}
+
+@Composable
+private fun LogoutDialog(
+    isBusy: Boolean,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Выйти из аккаунта?", fontWeight = FontWeight.Bold) },
+        text = { Text("Текущая mock-сессия будет очищена, и вы вернётесь на экран авторизации.") },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                enabled = !isBusy,
+                colors = ButtonDefaults.buttonColors(containerColor = Danger, contentColor = Color.White)
+            ) {
+                Text("Выйти")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, enabled = !isBusy) {
+                Text("Отмена", color = PetMatesTextSecondary)
+            }
+        }
+    )
 }
 
 @Composable
@@ -551,6 +851,7 @@ private fun PasswordField(
 private fun DeleteAccountDialog(
     accountName: String,
     onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
 ) {
     val context = LocalContext.current
     var name by rememberSaveable { mutableStateOf("") }
@@ -593,7 +894,7 @@ private fun DeleteAccountDialog(
         confirmButton = {
             Button(
                 onClick = {
-                    Toast.makeText(context, "Удаление аккаунта (мок)", Toast.LENGTH_SHORT).show()
+                    onConfirm()
                     onDismiss()
                 },
                 enabled = name == accountName && code.isNotBlank(),

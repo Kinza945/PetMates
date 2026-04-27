@@ -5,6 +5,7 @@ import com.kynzai.data.remote.SupabaseRestApi
 import com.kynzai.data.remote.dto.ResponseDto
 import com.kynzai.data.remote.firstObjectFromArray
 import com.kynzai.data.remote.mapper.toDomain
+import com.kynzai.data.remote.objectFromRpc
 import com.kynzai.data.remote.toWire
 import com.kynzai.domain.models.Response
 import com.kynzai.domain.models.ResponseStatus
@@ -32,34 +33,31 @@ class ResponseRepositoryImpl @Inject constructor(
         }
 
     override suspend fun createResponse(vacancyId: UUID): Result<Response> =
-        api.postTableJson(
-            table = "responses",
+        api.postRpcJson(
+            functionName = "respond_to_vacancy",
             bodyJson = JSONObject()
-                .put("vacancy_id", vacancyId.toString())
-                .put("status", ResponseStatus.PENDING.toWire())
-                .toString(),
-            query = mapOf("select" to "*")
+                .put("p_vacancy_id", vacancyId.toString())
+                .toString()
         ).mapCatching { raw ->
-            ResponseDto.fromJson(firstObjectFromArray(raw)).toDomain()
+            ResponseDto.fromJson(objectFromRpc(raw)).toDomain()
         }
 
     override suspend fun updateResponseStatus(responseId: UUID, status: ResponseStatus): Result<Response> =
-        api.patchTableJson(
-            table = "responses",
+        api.postRpcJson(
+            functionName = "update_response_status",
             bodyJson = JSONObject()
-                .put("status", status.toWire())
-                .toString(),
-            query = mapOf(
-                "response_id" to "eq.$responseId",
-                "select" to "*",
-            )
+                .put("p_response_id", responseId.toString())
+                .put("p_status", status.toWire())
+                .toString()
         ).mapCatching { raw ->
-            ResponseDto.fromJson(firstObjectFromArray(raw)).toDomain()
+            ResponseDto.fromJson(objectFromRpc(raw)).toDomain()
         }
 
     override suspend fun cancelResponse(responseId: UUID): Result<Unit> =
-        api.deleteTableJson(
-            table = "responses",
-            query = mapOf("response_id" to "eq.$responseId")
-        )
+        api.postRpcJson(
+            functionName = "cancel_response",
+            bodyJson = JSONObject()
+                .put("p_response_id", responseId.toString())
+                .toString()
+        ).map { Unit }
 }

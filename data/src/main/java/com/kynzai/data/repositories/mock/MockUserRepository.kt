@@ -51,4 +51,28 @@ class MockUserRepository @Inject constructor(
         data.users[idx] = updated
         return Result.success(updated)
     }
+
+    override suspend fun deleteAccount(): Result<Unit> {
+        val userId = data.currentUserId ?: return Result.failure(IllegalStateException("Unauthorized"))
+        val ownedProjectIds = data.projects
+            .filter { it.ownerId == userId }
+            .map { it.projectId }
+            .toSet()
+        val ownedVacancyIds = data.vacancies
+            .filter { it.projectId in ownedProjectIds }
+            .map { it.vacancyId }
+            .toSet()
+
+        data.responses.removeAll { it.userId == userId || it.vacancyId in ownedVacancyIds }
+        data.invites.removeAll { it.userId == userId || it.projectId in ownedProjectIds }
+        data.notifications.removeAll { it.userId == userId || it.referenceId in ownedProjectIds }
+        data.projectMembers.removeAll { it.userId == userId || it.projectId in ownedProjectIds }
+        data.vacancies.removeAll { it.projectId in ownedProjectIds }
+        data.projectRatings.removeAll { it.first == userId || it.second in ownedProjectIds }
+        data.projects.removeAll { it.ownerId == userId }
+        data.users.removeAll { it.userId == userId }
+        data.currentUserId = null
+
+        return Result.success(Unit)
+    }
 }

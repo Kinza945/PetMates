@@ -5,6 +5,7 @@ import com.kynzai.data.remote.SupabaseRestApi
 import com.kynzai.data.remote.dto.UserDto
 import com.kynzai.data.remote.firstObjectFromArray
 import com.kynzai.data.remote.mapper.toDomain
+import com.kynzai.data.remote.objectFromRpc
 import com.kynzai.data.remote.toJsonBody
 import com.kynzai.domain.models.User
 import com.kynzai.domain.models.UserProfileUpdate
@@ -60,11 +61,16 @@ class UserRepositoryImpl @Inject constructor(
         }
 
     override suspend fun updateProfile(update: UserProfileUpdate): Result<User> =
-        api.patchTableJson(
-            table = "users",
+        api.postRpcJson(
+            functionName = "update_my_profile",
             bodyJson = update.toJsonBody(),
-            query = mapOf("select" to "*")
         ).mapCatching { raw ->
-            UserDto.fromJson(firstObjectFromArray(raw)).toDomain()
+            UserDto.fromJson(objectFromRpc(raw)).toDomain()
         }
+
+    override suspend fun deleteAccount(): Result<Unit> =
+        api.postRpcJson(
+            functionName = "delete_my_account",
+            bodyJson = "{}",
+        ).map { Unit }
 }

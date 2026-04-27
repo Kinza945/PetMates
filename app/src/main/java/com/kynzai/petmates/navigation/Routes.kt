@@ -10,12 +10,16 @@ object Routes {
 
     const val Notifications = "notifications"
 
-    // Create flows
+    // Сценарии создания/редактирования сущностей.
     const val CreateProject = "create_project"
     const val CreateVacancy = "create_vacancy"
+    const val EditProject = "edit_project"
+    const val EditVacancy = "edit_vacancy"
+    const val VacancyDetails = "vacancy_details"
+    const val ProfileEdit = "profile_edit"
     const val InviteUser = "invite_user"
 
-    // Details
+    // Детальные экраны.
     const val ProjectDetails = "project_details"
     const val UserProfile = "user_profile"
 
@@ -23,5 +27,8 @@ object Routes {
     fun userProfile(nickname: String): String = "$UserProfile/$nickname"
 
     fun createVacancy(projectId: String): String = "$CreateVacancy/$projectId"
+    fun editProject(projectId: String): String = "$EditProject/$projectId"
+    fun editVacancy(vacancyId: String): String = "$EditVacancy/$vacancyId"
+    fun vacancyDetails(vacancyId: String): String = "$VacancyDetails/$vacancyId"
     fun inviteUser(projectId: String): String = "$InviteUser/$projectId"
 }

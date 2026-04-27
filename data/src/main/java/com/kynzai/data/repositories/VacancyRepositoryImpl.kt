@@ -89,4 +89,12 @@ class VacancyRepositoryImpl @Inject constructor(
         ).mapCatching { raw ->
             VacancyDto.fromJson(firstObjectFromArray(raw)).toDomain()
         }
+
+    override suspend fun deleteVacancy(vacancyId: UUID): Result<Unit> =
+        api.postRpcJson(
+            functionName = "delete_vacancy",
+            bodyJson = JSONObject()
+                .put("p_vacancy_id", vacancyId.toString())
+                .toString()
+        ).map { Unit }
 }

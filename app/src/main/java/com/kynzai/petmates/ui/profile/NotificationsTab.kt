@@ -57,8 +57,9 @@ data class NotificationUiModel(
 )
 
 /**
- * Demo-only variant (no DI / no server / no mocks). Used by previews and UI-tests that do not start Hilt.
- * In the app use [NotificationsRoute].
+ * Демо-вариант без DI, сервера и mock-репозиториев.
+ * Нужен для preview и UI-тестов, которые не поднимают Hilt.
+ * В реальном приложении использовать [NotificationsRoute].
  */
 @Composable
 fun NotificationsTab(

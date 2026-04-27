@@ -1,240 +1,215 @@
 package com.kynzai.petmates.ui.profile
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import android.widget.Toast
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
-// Фирменный цвет из макета (бирюзовый)
-val PetMatesTeal = Color(0xFF38B29E)
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.kynzai.domain.models.Gender
+import com.kynzai.petmates.ui.common.AuthRequiredScreen
+import com.kynzai.petmates.ui.common.ScreenState
+import com.kynzai.petmates.ui.common.UiEvent
+import com.kynzai.petmates.ui.theme.PetMatesBackground
+import com.kynzai.petmates.ui.theme.PetMatesPrimary
+import com.kynzai.petmates.ui.theme.PetMatesSurface
+import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
+import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileEditScreen() {
+fun ProfileEditScreen(
+    onBackClick: () -> Unit = {},
+    onAuthRequested: () -> Unit = {},
+    vm: ProfileEditViewModel = hiltViewModel(),
+) {
+    val state by vm.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) { vm.load() }
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            when (event) {
+                UiEvent.Saved -> onBackClick()
+                is UiEvent.ShowMessage -> Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+                else -> Unit
+            }
+        }
+    }
+
     Scaffold(
+        containerColor = PetMatesBackground,
         topBar = {
             TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Заглушка для логотипа
-                        Icon(Icons.Default.Pets, contentDescription = "Logo", modifier = Modifier.padding(end = 8.dp))
-                        Text("PetMates", fontWeight = FontWeight.Bold)
+                title = { Text("Редактировать профиль", fontWeight = FontWeight.Bold, color = PetMatesTextPrimary) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад", tint = PetMatesTextPrimary)
                     }
                 },
-                actions = {
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Уведомления")
-                    }
-                    IconButton(onClick = { /*TODO*/ }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Меню")
-                    }
-                }
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = PetMatesSurface)
             )
         }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-        ) {
-            // Вкладки (Tabs)
-            TabRow(
-                selectedTabIndex = 0,
-                containerColor = Color.Transparent,
-                contentColor = PetMatesTeal,
-                modifier = Modifier.padding(bottom = 24.dp)
-            ) {
-                Tab(selected = true, onClick = { }, text = { Text("Информация", color = PetMatesTeal) })
-                Tab(selected = false, onClick = { }, text = { Text("Активность", color = Color.Gray) })
-                Tab(selected = false, onClick = { }, text = { Text("Уведомления", color = Color.Gray) })
-                Tab(selected = false, onClick = { }, text = { Text("Настройки", color = Color.Gray) })
+    ) { padding ->
+        when (val s = state) {
+            ScreenState.Loading -> androidx.compose.foundation.layout.Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PetMatesPrimary)
             }
-
-            // Аватар и Никнейм
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(Color.LightGray),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.Person, contentDescription = "Avatar", tint = Color.White, modifier = Modifier.size(40.dp))
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text("Имя пользователя:", fontSize = 12.sp, color = Color.Gray)
-                    OutlinedTextField(
-                        value = "DogI1X",
-                        onValueChange = {},
-                        modifier = Modifier.fillMaxWidth().height(50.dp),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-            }
-
-            // Основные поля формы
-            FormRow(label = "Реальное имя пользователя:", value = "Гринькин Вадим Николаевич")
-            FormRow(label = "Возраст:", value = "17")
-
-            // Выбор пола (Radio Buttons)
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Пол:", modifier = Modifier.weight(0.35f), fontSize = 14.sp)
-                Row(modifier = Modifier.weight(0.65f), verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(selected = true, onClick = {}, colors = RadioButtonDefaults.colors(selectedColor = PetMatesTeal))
-                    Text("Мужской", fontSize = 14.sp)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    RadioButton(selected = false, onClick = {})
-                    Text("Женский", fontSize = 14.sp)
-                }
-            }
-
-            FormRow(label = "Страна:", value = "Россия")
-            FormRow(label = "Город:", value = "Краснодар")
-            FormRow(label = "Место работы/учебы:", value = "ИМСИТ")
-            FormRow(label = "Роль:", value = "Python Data Science")
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Текстовые области (Описание, Скиллы)
-            SectionTitle(icon = Icons.Default.Edit, title = "Описание:")
-            MultilineTextField("Добавлю немного описания, чтобы быть самым модным на районе. Буду рад, если смогу научиться чему-нибудь интересному.\n\nДля связи:\nТГ: @ClownZzz")
-
-            SectionTitle(icon = Icons.Default.Bookmark, title = "hard-skills: (перечисление тегами)")
-            MultilineTextField("#csharp #rest #patterns #ui/ux #git #design #databases")
-
-            SectionTitle(icon = Icons.Default.Star, title = "soft-skills: (перечисление тегами)")
-            MultilineTextField("#величайший #прекраснейший #сильнейший")
-
-            // Контакты
-            SectionTitle(icon = Icons.Default.Link, title = "Контакты:")
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Ютуб-канал:", fontSize = 14.sp)
-                Text("https://www.youtube.com/@spektr.project", color = PetMatesTeal, fontSize = 14.sp)
-                Row {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = PetMatesTeal, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = Color.Red, modifier = Modifier.size(20.dp))
-                }
-            }
-
-            OutlinedButton(
-                onClick = { },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Добавить контакт", color = Color.Black)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Нижние кнопки сохранения
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = PetMatesTeal),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Сохранить", color = Color.White)
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                OutlinedButton(
-                    onClick = { },
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text("Отмена", color = Color.Black)
-                }
-
-                Spacer(modifier = Modifier.width(16.dp))
-
-                // Переключатель предпросмотра
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Предпросмотр", fontSize = 12.sp, color = Color.Gray)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Switch(
-                        checked = false,
-                        onCheckedChange = {},
-                        colors = SwitchDefaults.colors(checkedThumbColor = PetMatesTeal, checkedTrackColor = PetMatesTeal.copy(alpha = 0.5f))
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            ScreenState.Unauthorized -> AuthRequiredScreen(onAuthClick = onAuthRequested, modifier = Modifier.padding(padding))
+            is ScreenState.Error -> Text(s.message, color = PetMatesTextSecondary, modifier = Modifier.padding(padding).padding(16.dp))
+            is ScreenState.Content -> ProfileEditContent(
+                form = s.value,
+                modifier = Modifier.padding(padding),
+                vm = vm,
+            )
         }
     }
 }
 
-// Вспомогательная функция для отрисовки строки "Лейбл + Поле ввода"
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
-fun FormRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+private fun ProfileEditContent(
+    form: ProfileEditForm,
+    modifier: Modifier,
+    vm: ProfileEditViewModel,
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(text = label, modifier = Modifier.weight(0.35f), fontSize = 14.sp)
-        OutlinedTextField(
-            value = value,
-            onValueChange = {}, // Пусто, так как это заглушка
-            modifier = Modifier.weight(0.65f).height(50.dp),
-            shape = RoundedCornerShape(8.dp),
-            singleLine = true
-        )
+        item { Text("Основное", fontWeight = FontWeight.Bold, color = PetMatesTextPrimary) }
+        item { EditTextField(form.realName, vm::onRealNameChanged, "Имя*", form.realNameError) }
+        item { EditTextField(form.age, vm::onAgeChanged, "Возраст", form.ageError) }
+        item {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Gender.entries.forEach { gender ->
+                    FilterChip(
+                        selected = form.gender == gender,
+                        onClick = { vm.onGenderChanged(gender) },
+                        label = { Text(gender.toUi()) },
+                    )
+                }
+            }
+        }
+        item { EditTextField(form.country, vm::onCountryChanged, "Страна", null) }
+        item { EditTextField(form.city, vm::onCityChanged, "Город", null) }
+        item { EditTextField(form.workplace, vm::onWorkplaceChanged, "Работа/учёба", null) }
+        item { EditTextField(form.profileRole, vm::onProfileRoleChanged, "Роль", null) }
+        item { EditTextField(form.description, vm::onDescriptionChanged, "Описание", null, singleLine = false, minLines = 4) }
+
+        item { SkillEditor("Hard-skills", form.newHardSkill, vm::onNewHardSkillChanged, vm::addHardSkill, form.hardSkills, vm::removeHardSkill) }
+        item { SkillEditor("Soft-skills", form.newSoftSkill, vm::onNewSoftSkillChanged, vm::addSoftSkill, form.softSkills, vm::removeSoftSkill) }
+
+        item {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                Text("Контакты", fontWeight = FontWeight.Bold, color = PetMatesTextPrimary, modifier = Modifier.weight(1f))
+                IconButton(onClick = vm::addContact) {
+                    Icon(Icons.Default.Add, contentDescription = "Добавить", tint = PetMatesPrimary)
+                }
+            }
+        }
+        itemsIndexed(form.contacts) { index, contact ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
+                EditTextField(contact.name, { vm.onContactNameChanged(index, it) }, "Название", contact.nameError, modifier = Modifier.weight(1f))
+                EditTextField(contact.link, { vm.onContactLinkChanged(index, it) }, "Ссылка", contact.linkError, modifier = Modifier.weight(1f))
+                IconButton(onClick = { vm.removeContact(index) }) {
+                    Icon(Icons.Default.Close, contentDescription = "Удалить", tint = Color.Red)
+                }
+            }
+        }
+        item {
+            Button(
+                onClick = vm::save,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White),
+            ) {
+                Text("Сохранить", fontWeight = FontWeight.Bold)
+            }
+        }
     }
 }
 
-// Вспомогательная функция для заголовков секций
 @Composable
-fun SectionTitle(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
-    Row(
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
-// Вспомогательная функция для многострочных полей
-@Composable
-fun MultilineTextField(value: String) {
+private fun EditTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    error: String?,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+) {
     OutlinedTextField(
         value = value,
-        onValueChange = {},
-        modifier = Modifier.fillMaxWidth().defaultMinSize(minHeight = 100.dp),
-        shape = RoundedCornerShape(8.dp)
+        onValueChange = onValueChange,
+        modifier = modifier,
+        label = { Text(label) },
+        isError = error != null,
+        supportingText = { if (error != null) Text(error) },
+        singleLine = singleLine,
+        minLines = minLines,
+        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = PetMatesPrimary),
     )
 }
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun SkillEditor(
+    title: String,
+    input: String,
+    onInput: (String) -> Unit,
+    onAdd: () -> Unit,
+    skills: List<String>,
+    onRemove: (String) -> Unit,
+) {
+    Text(title, fontWeight = FontWeight.Bold, color = PetMatesTextPrimary)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        EditTextField(input, onInput, "Новый тег", null, modifier = Modifier.weight(1f))
+        IconButton(onClick = onAdd) { Icon(Icons.Default.Add, contentDescription = "Добавить", tint = PetMatesPrimary) }
+    }
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        skills.forEach { skill ->
+            AssistChip(onClick = { onRemove(skill) }, label = { Text(skill) })
+        }
+    }
+}
+
+private fun Gender.toUi(): String =
+    when (this) {
+        Gender.MALE -> "Мужской"
+        Gender.FEMALE -> "Женский"
+        Gender.UNSPECIFIED -> "Не указано"
+    }

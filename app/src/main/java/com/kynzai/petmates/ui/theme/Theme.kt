@@ -30,7 +30,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = PetMatesTextPrimary,
     onSurfaceVariant = PetMatesTextSecondary,
 
-    /* Other default colors to override
+    /* Остальные стандартные цвета можно переопределить позже
     background = Color(0xFFFFFBFE),
     surface = Color(0xFFFFFBFE),
     onPrimary = Color.White,
@@ -44,7 +44,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun PetMatesTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
+    // Dynamic color доступен на Android 12+, но для PetMates оставляем фиксированную бренд-палитру.
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

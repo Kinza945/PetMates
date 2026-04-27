@@ -2,8 +2,10 @@ package com.kynzai.petmates.di
 
 import com.kynzai.data.BuildConfig as DataBuildConfig
 import com.kynzai.data.network.AuthTokenProvider
+import com.kynzai.data.network.EmptyAuthTokenProvider
 import com.kynzai.data.network.HttpClientFactory
 import com.kynzai.data.network.SupabaseConfig
+import com.kynzai.data.remote.SupabaseAuthApi
 import com.kynzai.petmates.session.SessionManager
 import dagger.Module
 import dagger.Provides
@@ -38,4 +40,16 @@ object DataNetworkModule {
         authTokenProvider: AuthTokenProvider,
     ): HttpClient =
         HttpClientFactory.create(config, authTokenProvider)
+
+    @Provides
+    @Singleton
+    fun provideSupabaseAuthApi(config: SupabaseConfig): SupabaseAuthApi =
+        /*
+         * Auth API использует отдельный клиент без SessionManager, иначе Hilt получит цикл:
+         * SessionManager -> AuthRepository -> SupabaseAuthApi -> HttpClient -> AuthTokenProvider -> SessionManager.
+         */
+        SupabaseAuthApi(
+            http = HttpClientFactory.create(config, EmptyAuthTokenProvider),
+            config = config,
+        )
 }

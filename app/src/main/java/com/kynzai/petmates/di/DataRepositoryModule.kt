@@ -2,8 +2,10 @@ package com.kynzai.petmates.di
 
 import android.content.Context
 import com.kynzai.data.BuildConfig as DataBuildConfig
+import com.kynzai.data.auth.EncryptedAuthSessionStorage
 import com.kynzai.data.auth.SharedPreferencesAuthSessionStorage
 import com.kynzai.data.mock.FakeDataSource
+import com.kynzai.data.remote.SupabaseAuthApi
 import com.kynzai.data.remote.SupabaseRestApi
 import com.kynzai.data.repositories.AuthRepositoryImpl
 import com.kynzai.data.repositories.InviteRepositoryImpl
@@ -41,12 +43,13 @@ object DataRepositoryModule {
     fun provideAuthRepository(
         @ApplicationContext context: Context,
         fake: FakeDataSource,
+        authApi: SupabaseAuthApi,
     ): AuthRepository {
         val prefs = context.getSharedPreferences("petmates_auth", Context.MODE_PRIVATE)
         return if (DataBuildConfig.USE_MOCKS) {
             MockAuthRepository(fake, SharedPreferencesAuthSessionStorage(prefs))
         } else {
-            AuthRepositoryImpl()
+            AuthRepositoryImpl(authApi, EncryptedAuthSessionStorage(prefs))
         }
     }
 

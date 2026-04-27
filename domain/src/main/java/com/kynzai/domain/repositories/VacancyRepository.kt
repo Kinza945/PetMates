@@ -29,4 +29,7 @@ interface VacancyRepository {
         isOpen: Boolean,
     ): Result<Vacancy> =
         Result.failure(UnsupportedOperationException("updateVacancy is not implemented"))
+
+    suspend fun deleteVacancy(vacancyId: UUID): Result<Unit> =
+        Result.failure(UnsupportedOperationException("deleteVacancy is not implemented"))
 }

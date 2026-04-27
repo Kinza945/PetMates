@@ -28,6 +28,16 @@ internal fun firstObjectFromArray(raw: String): JSONObject {
     return arr.optJSONObject(0) ?: error("Server returned empty representation")
 }
 
+internal fun objectFromRpc(raw: String): JSONObject {
+    /*
+     * RPC может вернуть либо объект, либо массив с одним объектом — зависит от SQL-сигнатуры.
+     * Репозитории используют этот helper, чтобы не завязываться на конкретную форму ответа.
+     */
+    return runCatching { JSONObject(raw) }.getOrElse {
+        firstObjectFromArray(raw)
+    }
+}
+
 internal fun contactsJson(contacts: List<Contact>): JSONArray =
     JSONArray(
         contacts.map { contact ->

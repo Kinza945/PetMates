@@ -2,6 +2,7 @@ package com.kynzai.petmates.ui.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.kynzai.domain.repositories.UserRepository
 import com.kynzai.petmates.session.SessionManager
 import com.kynzai.petmates.ui.common.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,6 +24,7 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val sessionManager: SessionManager,
+    private val userRepository: UserRepository,
 ) : ViewModel() {
     private val _state = MutableStateFlow(SettingsUiState())
     val state = _state.asStateFlow()
@@ -48,7 +50,18 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun deleteAccount() {
-        emitMessage("Удаление аккаунта пока не подключено к серверу")
+        viewModelScope.launch {
+            _state.update { it.copy(isBusy = true) }
+            userRepository.deleteAccount()
+                .onSuccess {
+                    sessionManager.logout()
+                    _events.emit(UiEvent.AuthRequired)
+                }
+                .onFailure {
+                    _events.emit(UiEvent.ShowMessage(it.message ?: "Не удалось удалить аккаунт"))
+                }
+            _state.update { it.copy(isBusy = false) }
+        }
     }
 
     fun logout() {

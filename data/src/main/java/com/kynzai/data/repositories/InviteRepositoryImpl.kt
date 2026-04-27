@@ -3,8 +3,8 @@ package com.kynzai.data.repositories
 import com.kynzai.data.remote.JSONArrayObjects
 import com.kynzai.data.remote.SupabaseRestApi
 import com.kynzai.data.remote.dto.InviteDto
-import com.kynzai.data.remote.firstObjectFromArray
 import com.kynzai.data.remote.mapper.toDomain
+import com.kynzai.data.remote.objectFromRpc
 import com.kynzai.data.remote.toWire
 import com.kynzai.domain.models.Invite
 import com.kynzai.domain.models.InviteStatus
@@ -51,33 +51,36 @@ class InviteRepositoryImpl @Inject constructor(
         role: String,
         message: String?,
     ): Result<Invite> =
-        api.postTableJson(
-            table = "invites",
+        api.postRpcJson(
+            functionName = "invite_user",
             bodyJson = JSONObject()
-                .put("project_id", projectId.toString())
-                .put("user_id", userId.toString())
-                .put("role", role)
-                .put("status", InviteStatus.PENDING.toWire())
-                .toString(),
-            query = mapOf("select" to "*")
+                .put("p_project_id", projectId.toString())
+                .put("p_user_id", userId.toString())
+                .put("p_role", role)
+                .put("p_message", message ?: JSONObject.NULL)
+                .toString()
         ).mapCatching { raw ->
-            InviteDto.fromJson(firstObjectFromArray(raw)).toDomain()
+            InviteDto.fromJson(objectFromRpc(raw)).toDomain()
         }
 
     override suspend fun updateInviteStatus(inviteId: UUID, status: InviteStatus): Result<Invite> =
-        api.patchTableJson(
-            table = "invites",
+        api.postRpcJson(
+            functionName = "update_invite_status",
             bodyJson = JSONObject()
-                .put("status", status.toWire())
-                .toString(),
-            query = mapOf(
-                "invite_id" to "eq.$inviteId",
-                "select" to "*",
-            )
+                .put("p_invite_id", inviteId.toString())
+                .put("p_status", status.toWire())
+                .toString()
         ).mapCatching { raw ->
-            InviteDto.fromJson(firstObjectFromArray(raw)).toDomain()
+            InviteDto.fromJson(objectFromRpc(raw)).toDomain()
         }
 
     override suspend fun cancelInvite(inviteId: UUID): Result<Invite> =
-        updateInviteStatus(inviteId, InviteStatus.CANCELLED)
+        api.postRpcJson(
+            functionName = "cancel_invite",
+            bodyJson = JSONObject()
+                .put("p_invite_id", inviteId.toString())
+                .toString()
+        ).mapCatching { raw ->
+            InviteDto.fromJson(objectFromRpc(raw)).toDomain()
+        }
 }

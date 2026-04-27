@@ -7,6 +7,8 @@ data class AuthSession(
     val nickname: String,
     val email: String?,
     val accessToken: String?,
+    val refreshToken: String? = null,
+    val expiresAtEpochSeconds: Long? = null,
 )
 
 data class LoginRequest(

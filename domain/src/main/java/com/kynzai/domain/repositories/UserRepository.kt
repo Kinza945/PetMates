@@ -16,6 +16,9 @@ interface UserRepository {
     suspend fun updateProfile(update: UserProfileUpdate): Result<User> =
         Result.failure(UnsupportedOperationException("updateProfile is not implemented"))
 
+    suspend fun deleteAccount(): Result<Unit> =
+        Result.failure(UnsupportedOperationException("deleteAccount is not implemented"))
+
     /**
      * Расширенный поиск с пагинацией/фильтрами. По умолчанию строится на searchUsers(String).
      */

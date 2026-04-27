@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kynzai.petmates.ui.events.EventsRoute
+import com.kynzai.petmates.ui.common.AuthRequiredScreen
 import com.kynzai.petmates.ui.profile.ProfileScreen
 import com.kynzai.petmates.ui.requests.RequestsRoute
 import com.kynzai.petmates.ui.theme.PetMatesBackground
@@ -55,6 +57,11 @@ fun MainScreen(
     onAuthRequested: () -> Unit,
     onNotificationsClick: () -> Unit,
     onCreateProjectClick: () -> Unit,
+    onEditProfileClick: () -> Unit = {},
+    onLogoutComplete: () -> Unit = {},
+    onEditProjectClick: (String) -> Unit = {},
+    onCreateVacancyClick: (String) -> Unit = {},
+    onNavigateToVacancy: (String) -> Unit = {},
     onNavigateToProject: (String) -> Unit = {},
     onNavigateToUser: (String) -> Unit = {},
 ) {
@@ -122,14 +129,35 @@ fun MainScreen(
             when (MainTab.entries.getOrNull(selectedTab) ?: MainTab.Events) {
                 MainTab.Profile -> {
                     if (!isAuthorized) {
-                        GuestProfilePlaceholder(onAuthRequested)
+                        AuthRequiredScreen(
+                            message = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
+                            onAuthClick = onAuthRequested,
+                        )
                     } else {
-                        ProfileScreen(onCreateProjectClick = onCreateProjectClick)
+                        ProfileScreen(
+                            onCreateProjectClick = onCreateProjectClick,
+                            onEditProfileClick = onEditProfileClick,
+                            onLogoutComplete = onLogoutComplete,
+                            onAuthRequested = onAuthRequested,
+                            onOpenProject = onNavigateToProject,
+                            onEditProject = onEditProjectClick,
+                            onCreateVacancy = onCreateVacancyClick,
+                            onOpenVacancy = onNavigateToVacancy,
+                        )
                     }
                 }
 
                 MainTab.Events -> EventsRoute(onProjectClick = onNavigateToProject)
-                MainTab.Requests -> RequestsRoute()
+                MainTab.Requests -> {
+                    if (!isAuthorized) {
+                        AuthRequiredScreen(
+                            message = "Войдите, чтобы смотреть заявки и отклики.",
+                            onAuthClick = onAuthRequested,
+                        )
+                    } else {
+                        RequestsRoute()
+                    }
+                }
                 MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser)
             }
         }
@@ -159,34 +187,4 @@ private fun RowScope.BottomItem(
             Text(text = label, color = if (selected) selectedColor else unselectedColor)
         }
     )
-}
-
-@Composable
-private fun GuestProfilePlaceholder(onAuthRequested: () -> Unit) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
-                color = PetMatesTextSecondary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Button(
-                onClick = onAuthRequested,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PetMatesPrimary,
-                    contentColor = Color.White
-                )
-            ) {
-                Text("Авторизоваться", fontWeight = FontWeight.Bold)
-            }
-        }
-    }
 }

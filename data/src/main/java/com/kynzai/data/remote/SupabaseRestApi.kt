@@ -20,13 +20,12 @@ class SupabaseRestApi @Inject constructor(
     private val config: SupabaseConfig,
 ) {
     /*
-     * Thin wrapper over Supabase PostgREST table endpoints.
+     * Тонкая обёртка над Supabase PostgREST table endpoints.
      *
-     * This class intentionally knows nothing about domain models. Repositories build
-     * table names, filters and JSON bodies, then map the raw JSON response to DTOs.
-     * Keeping this layer small makes the mock -> real API switch predictable: UI and
-     * use cases continue to work through repository contracts, while only transport
-     * details stay here.
+     * Этот класс специально не знает о domain-моделях. Репозитории сами выбирают
+     * таблицу, фильтры и JSON-тело, а затем маппят сырой JSON в DTO/domain.
+     * Чем меньше логики в транспортном слое, тем проще переключение mock -> real API:
+     * UI и use-case продолжают работать через контракты репозиториев.
      */
     suspend fun getTableJson(table: String, query: Map<String, String> = mapOf("select" to "*")): Result<String> {
         if (config.baseUrl.isBlank()) {
@@ -62,7 +61,7 @@ class SupabaseRestApi @Inject constructor(
         val response = http.post(url) {
             query.forEach { (k, v) -> parameter(k, v) }
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            // Supabase returns created/updated rows only when this header is present.
+            // Без Prefer:return=representation Supabase не вернёт созданную/обновлённую строку.
             header("Prefer", "return=representation")
             setBody(bodyJson)
         }
@@ -83,7 +82,7 @@ class SupabaseRestApi @Inject constructor(
         val response = http.patch(url) {
             query.forEach { (k, v) -> parameter(k, v) }
             header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
-            // We need representation back because repositories map it immediately.
+            // Репозиторий сразу маппит ответ, поэтому PATCH тоже должен вернуть representation.
             header("Prefer", "return=representation")
             setBody(bodyJson)
         }
@@ -116,11 +115,28 @@ class SupabaseRestApi @Inject constructor(
         return Result.success(Unit)
     }
 
+    suspend fun postRpcJson(
+        functionName: String,
+        bodyJson: String = "{}",
+    ): Result<String> {
+        if (config.baseUrl.isBlank()) {
+            return Result.failure(IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data)."))
+        }
+
+        val url = config.baseUrl.trimEnd('/') + "/rest/v1/rpc/$functionName"
+        val response = http.post(url) {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(bodyJson)
+        }
+
+        return response.toJsonResult("RPC", functionName)
+    }
+
     private suspend fun io.ktor.client.statement.HttpResponse.toJsonResult(
         method: String,
         table: String,
     ): Result<String> {
-        // Surface server error body in Result so ViewModels can show meaningful state.
+        // Пробрасываем тело ошибки сервера в Result, чтобы ViewModel могла показать понятное состояние.
         if (!status.isSuccess()) {
             val body = runCatching { body<String>() }.getOrNull()
             val details = body?.let { " | $it" }.orEmpty()

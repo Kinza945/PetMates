@@ -113,4 +113,27 @@ class MockProjectRepository @Inject constructor(
 
         return Result.success(updated)
     }
+
+    override suspend fun deleteProject(projectId: UUID): Result<Unit> {
+        val userId = data.currentUserId ?: return Result.failure(IllegalStateException("Unauthorized"))
+        val project = data.projects.firstOrNull { it.projectId == projectId }
+            ?: return Result.failure(NoSuchElementException("Project not found: $projectId"))
+        if (project.ownerId != userId) {
+            return Result.failure(IllegalStateException("Only project owner can delete project"))
+        }
+
+        val vacancyIds = data.vacancies
+            .filter { it.projectId == projectId }
+            .map { it.vacancyId }
+            .toSet()
+        data.responses.removeAll { it.vacancyId in vacancyIds }
+        data.vacancies.removeAll { it.projectId == projectId }
+        data.projectMembers.removeAll { it.projectId == projectId }
+        data.invites.removeAll { it.projectId == projectId }
+        data.notifications.removeAll { it.referenceId == projectId || it.contextData["project_id"] == projectId.toString() }
+        data.projectRatings.removeAll { it.second == projectId }
+        data.projects.removeAll { it.projectId == projectId }
+
+        return Result.success(Unit)
+    }
 }

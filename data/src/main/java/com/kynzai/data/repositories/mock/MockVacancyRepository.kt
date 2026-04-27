@@ -60,4 +60,20 @@ class MockVacancyRepository @Inject constructor(
         data.vacancies[idx] = updated
         return Result.success(updated)
     }
+
+    override suspend fun deleteVacancy(vacancyId: UUID): Result<Unit> {
+        val userId = data.currentUserId ?: return Result.failure(IllegalStateException("Unauthorized"))
+        val vacancy = data.vacancies.firstOrNull { it.vacancyId == vacancyId }
+            ?: return Result.failure(NoSuchElementException("Vacancy not found: $vacancyId"))
+        val project = data.projects.firstOrNull { it.projectId == vacancy.projectId }
+            ?: return Result.failure(NoSuchElementException("Project not found: ${vacancy.projectId}"))
+        if (project.ownerId != userId) {
+            return Result.failure(IllegalStateException("Only project owner can delete vacancy"))
+        }
+
+        data.responses.removeAll { it.vacancyId == vacancyId }
+        data.notifications.removeAll { it.referenceId == vacancyId || it.contextData["vacancy_id"] == vacancyId.toString() }
+        data.vacancies.removeAll { it.vacancyId == vacancyId }
+        return Result.success(Unit)
+    }
 }
