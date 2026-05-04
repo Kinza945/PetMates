@@ -5,6 +5,7 @@ import com.kynzai.domain.models.Notification
 import com.kynzai.domain.models.NotificationCategory
 import com.kynzai.domain.models.Project
 import com.kynzai.domain.models.ProjectMember
+import com.kynzai.domain.models.ProjectRating
 import com.kynzai.domain.models.ProjectStatus
 import com.kynzai.domain.models.ReferenceType
 import com.kynzai.domain.models.Vacancy
@@ -73,10 +74,11 @@ class MockProjectRepository @Inject constructor(
         return Result.success(updated)
     }
 
-    override suspend fun rateProject(projectId: UUID): Result<Project> {
+    override suspend fun rateProject(projectId: UUID, score: Int, comment: String?): Result<Project> {
         val userId = data.currentUserId ?: return Result.failure(IllegalStateException("Unauthorized"))
         val idx = data.projects.indexOfFirst { it.projectId == projectId }
         if (idx == -1) return Result.failure(NoSuchElementException("Project not found: $projectId"))
+        if (score !in 1..5) return Result.failure(IllegalArgumentException("Rating score must be from 1 to 5"))
 
         /*
          * Оценка проекта пока реализована только в mock-слое.
@@ -87,10 +89,21 @@ class MockProjectRepository @Inject constructor(
         val project = data.projects[idx]
         if (project.ownerId == userId) return Result.failure(IllegalStateException("Project owner cannot rate own project"))
 
-        val ratingKey = userId to projectId
-        if (!data.projectRatings.add(ratingKey)) {
+        if (data.projectRatings.any { it.userId == userId && it.projectId == projectId }) {
             return Result.failure(IllegalStateException("Project already rated by this user"))
         }
+
+        data.projectRatings.add(
+            0,
+            ProjectRating(
+                ratingId = UUID.randomUUID(),
+                projectId = projectId,
+                userId = userId,
+                score = score,
+                comment = comment?.trim()?.ifBlank { null },
+                createdAt = Instant.now(),
+            )
+        )
 
         val updated = project.copy(ratingCount = project.ratingCount + 1)
         data.projects[idx] = updated
@@ -114,6 +127,9 @@ class MockProjectRepository @Inject constructor(
         return Result.success(updated)
     }
 
+    override suspend fun getProjectRatings(projectId: UUID): Result<List<ProjectRating>> =
+        Result.success(data.projectRatings.filter { it.projectId == projectId }.sortedByDescending { it.createdAt })
+
     override suspend fun deleteProject(projectId: UUID): Result<Unit> {
         val userId = data.currentUserId ?: return Result.failure(IllegalStateException("Unauthorized"))
         val project = data.projects.firstOrNull { it.projectId == projectId }
@@ -131,7 +147,7 @@ class MockProjectRepository @Inject constructor(
         data.projectMembers.removeAll { it.projectId == projectId }
         data.invites.removeAll { it.projectId == projectId }
         data.notifications.removeAll { it.referenceId == projectId || it.contextData["project_id"] == projectId.toString() }
-        data.projectRatings.removeAll { it.second == projectId }
+        data.projectRatings.removeAll { it.projectId == projectId }
         data.projects.removeAll { it.projectId == projectId }
 
         return Result.success(Unit)

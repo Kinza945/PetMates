@@ -32,7 +32,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,8 +69,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kynzai.petmates.ui.common.AuthRequiredScreen
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
 import com.kynzai.petmates.ui.common.ScreenState
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
 import com.kynzai.petmates.ui.common.UiEvent
+import com.kynzai.petmates.ui.common.isServerUnavailableMessage
 import com.kynzai.petmates.ui.mappers.ContactUi
 import com.kynzai.petmates.ui.mappers.ProjectUi
 import com.kynzai.petmates.ui.mappers.UserUi
@@ -123,9 +126,7 @@ fun ProfileScreen(
 
     when (val s = state) {
         ScreenState.Loading -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PetMatesPrimary)
-            }
+            LoadingStateScreen(message = "Загружаем профиль...")
             return
         }
 
@@ -138,13 +139,10 @@ fun ProfileScreen(
         }
 
         is ScreenState.Error -> {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
-                    Text(s.message, color = PetMatesTextSecondary)
-                    Button(onClick = vm::refresh, modifier = Modifier.padding(top = 16.dp), colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary)) {
-                        Text("Повторить")
-                    }
-                }
+            if (s.message.isServerUnavailableMessage()) {
+                ServerUnavailableScreen(onRetryClick = vm::refresh)
+            } else {
+                ErrorStateScreen(message = s.message, onRetryClick = vm::refresh)
             }
             return
         }
@@ -299,6 +297,7 @@ fun ProfileScreen(
                     myProjects = profile.myProjects,
                     myResponses = profile.myResponses,
                     myInvites = profile.myInvites,
+                    sentInvites = profile.sentInvites,
                     onOpenProject = onOpenProject,
                     onEditProject = onEditProject,
                     onCreateVacancy = onCreateVacancy,
@@ -306,6 +305,7 @@ fun ProfileScreen(
                     onCancelResponse = vm::cancelResponse,
                     onAcceptInvite = vm::acceptInvite,
                     onDeclineInvite = vm::declineInvite,
+                    onCancelSentInvite = vm::cancelSentInvite,
                 )
 
                 ProfileTab.Notifications -> NotificationsRoute(modifier = Modifier.fillMaxSize())
@@ -410,6 +410,7 @@ private fun ActivityTab(
     myProjects: List<ProjectUi>,
     myResponses: List<ProfileResponseUi>,
     myInvites: List<ProfileInviteUi>,
+    sentInvites: List<ProfileSentInviteUi>,
     onOpenProject: (String) -> Unit,
     onEditProject: (String) -> Unit,
     onCreateVacancy: (String) -> Unit,
@@ -417,6 +418,7 @@ private fun ActivityTab(
     onCancelResponse: (String) -> Unit,
     onAcceptInvite: (String) -> Unit,
     onDeclineInvite: (String) -> Unit,
+    onCancelSentInvite: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -486,7 +488,7 @@ private fun ActivityTab(
             }
         }
 
-        item { SectionTitle("Мои приглашения") }
+        item { SectionTitle("Входящие приглашения") }
         if (myInvites.isEmpty()) {
             item { EmptyActivityText("Входящих приглашений пока нет.") }
         } else {
@@ -511,6 +513,30 @@ private fun ActivityTab(
                                 border = BorderStroke(1.dp, Danger),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
                             ) { Text("Отклонить") }
+                        }
+                    }
+                }
+            }
+        }
+
+        item { SectionTitle("Отправленные приглашения") }
+        if (sentInvites.isEmpty()) {
+            item { EmptyActivityText("Вы пока никого не приглашали в свои проекты.") }
+        } else {
+            items(sentInvites, key = { it.inviteId }) { invite ->
+                ActivityCard {
+                    Text(invite.projectName, color = PetMatesPrimary, fontWeight = FontWeight.Bold)
+                    Text("Кому: @${invite.userName}", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
+                    Text("Роль: ${invite.role}", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
+                    Text("${invite.statusLabel}${if (invite.date.isNotBlank()) " • ${invite.date}" else ""}", color = PetMatesTextSecondary, modifier = Modifier.padding(top = 6.dp))
+                    if (invite.isPending) {
+                        OutlinedButton(
+                            onClick = { onCancelSentInvite(invite.inviteId) },
+                            modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                            border = BorderStroke(1.dp, Danger),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
+                        ) {
+                            Text("Отменить приглашение")
                         }
                     }
                 }

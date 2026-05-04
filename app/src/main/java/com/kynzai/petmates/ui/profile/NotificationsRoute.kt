@@ -5,6 +5,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kynzai.domain.common.LoadState
+import com.kynzai.petmates.ui.common.isServerUnavailable
+import com.kynzai.petmates.ui.common.toUiMessage
 
 @Composable
 fun NotificationsRoute(
@@ -19,7 +21,10 @@ fun NotificationsRoute(
         modifier = modifier,
         showHeader = showHeader,
         items = items,
+        isLoading = state is LoadState.Loading,
+        errorMessage = (state as? LoadState.Error)?.error?.toUiMessage(),
+        isServerUnavailable = (state as? LoadState.Error)?.error?.isServerUnavailable() == true,
         onReadAllClick = { vm.markAllRead() },
+        onRetryClick = { vm.refresh() },
     )
 }
-

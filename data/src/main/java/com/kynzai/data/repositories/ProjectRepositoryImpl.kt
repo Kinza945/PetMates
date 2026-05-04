@@ -12,6 +12,7 @@ import com.kynzai.data.remote.putNullable
 import com.kynzai.data.remote.toWire
 import com.kynzai.domain.models.Project
 import com.kynzai.domain.models.ProjectMember
+import com.kynzai.domain.models.ProjectRating
 import com.kynzai.domain.models.ProjectStatus
 import com.kynzai.domain.models.Vacancy
 import com.kynzai.domain.repositories.ProjectRepository
@@ -118,14 +119,40 @@ class ProjectRepositoryImpl @Inject constructor(
             ProjectDto.fromJson(firstObjectFromArray(raw)).toDomain()
         }
 
-    override suspend fun rateProject(projectId: UUID): Result<Project> =
+    override suspend fun rateProject(projectId: UUID, score: Int, comment: String?): Result<Project> =
         api.postRpcJson(
             functionName = "rate_project",
             bodyJson = JSONObject()
                 .put("p_project_id", projectId.toString())
+                .put("p_score", score)
+                .putNullable("p_comment", comment)
                 .toString()
         ).mapCatching { raw ->
             ProjectDto.fromJson(objectFromRpc(raw)).toDomain()
+        }
+
+    override suspend fun getProjectRatings(projectId: UUID): Result<List<ProjectRating>> =
+        api.getTableJson(
+            table = "project_ratings",
+            query = mapOf(
+                "select" to "*",
+                "project_id" to "eq.$projectId",
+                "order" to "created_at.desc",
+            )
+        ).mapCatching { raw ->
+            val arr = JSONArray(raw)
+            JSONArrayObjects(arr)
+                .map { obj ->
+                    ProjectRating(
+                        ratingId = UUID.fromString(obj.optString("rating_id").ifBlank { UUID.nameUUIDFromBytes("${obj.getString("project_id")}:${obj.getString("user_id")}".toByteArray()).toString() }),
+                        projectId = UUID.fromString(obj.getString("project_id")),
+                        userId = UUID.fromString(obj.getString("user_id")),
+                        score = obj.optInt("score", 0).coerceIn(1, 5),
+                        comment = obj.optString("comment").takeIf { it.isNotBlank() },
+                        createdAt = obj.optString("created_at").takeIf { it.isNotBlank() }?.let { java.time.Instant.parse(it) },
+                    )
+                }
+                .toList()
         }
 
     override suspend fun deleteProject(projectId: UUID): Result<Unit> =

@@ -36,6 +36,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.kynzai.petmates.ui.common.EmptyStateScreen
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
@@ -72,6 +76,7 @@ fun NotificationsTab(
         showHeader = showHeader,
         items = items,
         onReadAllClick = { items = items.map { it.copy(isUnread = false) } },
+        onRetryClick = {},
     )
 }
 
@@ -80,7 +85,11 @@ fun NotificationsTabContent(
     modifier: Modifier = Modifier,
     showHeader: Boolean = true,
     items: List<NotificationUiModel>,
+    isLoading: Boolean = false,
+    errorMessage: String? = null,
+    isServerUnavailable: Boolean = false,
     onReadAllClick: () -> Unit,
+    onRetryClick: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -115,20 +124,42 @@ fun NotificationsTabContent(
             }
         }
 
-        LazyColumn(
-            modifier = Modifier
-                .padding(top = if (showHeader) 16.dp else 0.dp)
-                .fillMaxWidth()
-                .weight(1f, fill = true),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(items, key = { it.id }) { n ->
-                NotificationItem(
-                    type = n.type,
-                    text = n.text,
-                    date = n.date,
-                    isUnread = n.isUnread
-                )
+        when {
+            isLoading && items.isEmpty() -> LoadingStateScreen(
+                message = "Загружаем уведомления...",
+                modifier = Modifier.weight(1f, fill = true),
+            )
+            isServerUnavailable -> ServerUnavailableScreen(
+                onRetryClick = onRetryClick,
+                modifier = Modifier.weight(1f, fill = true),
+            )
+            errorMessage != null -> ErrorStateScreen(
+                message = errorMessage,
+                onRetryClick = onRetryClick,
+                modifier = Modifier.weight(1f, fill = true),
+            )
+            items.isEmpty() -> EmptyStateScreen(
+                title = "Нет уведомлений",
+                message = "Новые отклики, приглашения и обновления проектов появятся здесь.",
+                modifier = Modifier.weight(1f, fill = true),
+            )
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(top = if (showHeader) 16.dp else 0.dp)
+                        .fillMaxWidth()
+                        .weight(1f, fill = true),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(items, key = { it.id }) { n ->
+                        NotificationItem(
+                            type = n.type,
+                            text = n.text,
+                            date = n.date,
+                            isUnread = n.isUnread
+                        )
+                    }
+                }
             }
         }
     }

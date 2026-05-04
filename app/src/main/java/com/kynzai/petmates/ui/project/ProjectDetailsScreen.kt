@@ -18,15 +18,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,6 +38,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,7 +51,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kynzai.petmates.ui.common.ScreenState
+import com.kynzai.petmates.ui.common.EmptyStateScreen
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
 import com.kynzai.petmates.ui.common.UiEvent
+import com.kynzai.petmates.ui.common.isServerUnavailableMessage
 import com.kynzai.petmates.ui.mappers.VacancyUi
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
@@ -95,12 +106,17 @@ fun ProjectDetailsScreen(
         }
     ) { padding ->
         when (val s = state) {
-            ScreenState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PetMatesPrimary)
-            }
+            ScreenState.Loading -> LoadingStateScreen(message = "Загружаем проект...")
 
             ScreenState.Unauthorized -> Unit
-            is ScreenState.Error -> Text(s.message, color = PetMatesTextSecondary, modifier = Modifier.padding(padding).padding(16.dp))
+            is ScreenState.Error -> {
+                val modifier = Modifier.padding(padding)
+                if (s.message.isServerUnavailableMessage()) {
+                    ServerUnavailableScreen(modifier = modifier, onRetryClick = { vm.load(projectId) })
+                } else {
+                    ErrorStateScreen(modifier = modifier, message = s.message, onRetryClick = { vm.load(projectId) })
+                }
+            }
             is ScreenState.Content -> ProjectDetailsContent(
                 data = s.value,
                 modifier = Modifier.padding(padding),
@@ -122,13 +138,14 @@ private fun ProjectDetailsContent(
     data: ProjectDetailsUiState,
     modifier: Modifier,
     isAuthorized: Boolean,
-    onRate: () -> Unit,
+    onRate: (Int, String?) -> Unit,
     onAuthRequested: () -> Unit,
     onEditProject: () -> Unit,
     onCreateVacancy: () -> Unit,
     onInvite: () -> Unit,
     onVacancyClick: (String) -> Unit,
 ) {
+    var showRatingDialog by remember { mutableStateOf(false) }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -164,7 +181,7 @@ private fun ProjectDetailsContent(
                 OwnerActions(onEditProject, onCreateVacancy, onInvite)
             } else {
                 Button(
-                    onClick = { if (isAuthorized) onRate() else onAuthRequested() },
+                    onClick = { if (isAuthorized) showRatingDialog = true else onAuthRequested() },
                     modifier = Modifier.fillMaxWidth().height(46.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White),
                     shape = RoundedCornerShape(12.dp),
@@ -172,11 +189,125 @@ private fun ProjectDetailsContent(
             }
         }
 
+        item {
+            RatingsBlock(
+                ratings = data.ratings,
+                averageRating = data.averageRating,
+            )
+        }
+
         item { Text("Вакансии", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PetMatesTextPrimary) }
-        items(data.vacancies, key = { it.id }) { vacancy ->
-            VacancyCard(vacancy = vacancy, onClick = { if (isAuthorized) onVacancyClick(vacancy.id) else onAuthRequested() })
+        if (data.vacancies.isEmpty()) {
+            item {
+                EmptyStateScreen(
+                    title = "Нет вакансий",
+                    message = "Владелец проекта пока не добавил открытые роли.",
+                    modifier = Modifier.height(260.dp),
+                )
+            }
+        } else {
+            items(data.vacancies, key = { it.id }) { vacancy ->
+                VacancyCard(vacancy = vacancy, onClick = { if (isAuthorized) onVacancyClick(vacancy.id) else onAuthRequested() })
+            }
         }
     }
+
+    if (showRatingDialog) {
+        RatingDialog(
+            onDismiss = { showRatingDialog = false },
+            onSubmit = { score, comment ->
+                showRatingDialog = false
+                onRate(score, comment)
+            },
+        )
+    }
+}
+
+@Composable
+private fun RatingsBlock(
+    ratings: List<ProjectRatingUi>,
+    averageRating: Double?,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = PetMatesSurface),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text("Оценки проекта", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = PetMatesTextPrimary)
+            Text(
+                text = if (ratings.isEmpty()) {
+                    "Оценок пока нет"
+                } else {
+                    "Средняя %.1f • всего ${ratings.size}".format(averageRating ?: 0.0)
+                },
+                color = PetMatesTextSecondary,
+                modifier = Modifier.padding(top = 4.dp),
+            )
+            ratings.take(5).forEach { rating ->
+                Column(Modifier.padding(top = 12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFB300))
+                        Text("${rating.score}/5", fontWeight = FontWeight.Bold, color = PetMatesTextPrimary)
+                        Text(" • @${rating.userName}", color = PetMatesTextSecondary)
+                    }
+                    if (rating.comment.isNotBlank()) {
+                        Text(rating.comment, color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
+                    }
+                    if (rating.date.isNotBlank()) {
+                        Text(rating.date, color = PetMatesTextSecondary, fontSize = 12.sp, modifier = Modifier.padding(top = 2.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RatingDialog(
+    onDismiss: () -> Unit,
+    onSubmit: (Int, String?) -> Unit,
+) {
+    var score by remember { mutableIntStateOf(5) }
+    var comment by remember { mutableStateOf("") }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Оценить проект", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    (1..5).forEach { value ->
+                        OutlinedButton(
+                            onClick = { score = value },
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = if (score == value) Color.White else PetMatesPrimary,
+                                containerColor = if (score == value) PetMatesPrimary else Color.Transparent,
+                            )
+                        ) {
+                            Text(value.toString())
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = { comment = it },
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    label = { Text("Комментарий (опционально)") },
+                    minLines = 3,
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSubmit(score, comment.ifBlank { null }) }) {
+                Text("Поставить оценку")
+            }
+        },
+        dismissButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Отмена")
+            }
+        },
+    )
 }
 
 @Composable

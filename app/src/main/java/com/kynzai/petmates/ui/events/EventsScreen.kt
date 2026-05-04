@@ -1,5 +1,6 @@
 package com.kynzai.petmates.ui.events
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,8 +26,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -35,11 +37,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -47,6 +51,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kynzai.domain.common.LoadState
+import com.kynzai.petmates.ui.common.EmptyStateScreen
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
+import com.kynzai.petmates.ui.common.UiEvent
+import com.kynzai.petmates.ui.common.isServerUnavailable
+import com.kynzai.petmates.ui.common.toUiMessage
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
@@ -62,10 +73,22 @@ private val OnlineGreen = Color(0xFF3AC83D)
 @Composable
 fun EventsRoute(
     onProjectClick: (String) -> Unit = {},
+    onAuthRequested: () -> Unit = {},
     vm: EventsViewModel = hiltViewModel(),
 ) {
     var query by rememberSaveable { mutableStateOf("") }
     val state by vm.state.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(Unit) {
+        vm.events.collect { event ->
+            when (event) {
+                UiEvent.AuthRequired -> onAuthRequested()
+                is UiEvent.ShowMessage -> Toast.makeText(context, event.text, Toast.LENGTH_SHORT).show()
+                else -> Unit
+            }
+        }
+    }
 
     LaunchedEffect(query) {
         delay(250)
@@ -75,26 +98,64 @@ fun EventsRoute(
     EventsScreen(
         projects = (state as? LoadState.Data)?.value.orEmpty(),
         isLoading = state is LoadState.Loading,
+        errorMessage = (state as? LoadState.Error)?.error?.toUiMessage(),
+        isServerUnavailable = (state as? LoadState.Error)?.error?.isServerUnavailable() == true,
         query = query,
         onQueryChange = { query = it },
+        onRetryClick = { vm.load(query) },
         onProjectClick = { id -> onProjectClick(id.toString()) },
         onRespondClick = { vacancyId -> vm.respondToVacancy(vacancyId) },
     )
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun EventsScreen(
     projects: List<FeedProjectUi>,
     isLoading: Boolean,
+    errorMessage: String? = null,
+    isServerUnavailable: Boolean = false,
     query: String,
     onQueryChange: (String) -> Unit,
+    onRetryClick: () -> Unit = {},
     onProjectClick: (UUID) -> Unit = {},
     onRespondClick: (UUID) -> Unit = {},
 ) {
     val filtered = projects.filter {
         if (query.isBlank()) true
         else it.name.contains(query, ignoreCase = true) || it.description.contains(query, ignoreCase = true)
+    }
+    var vacancyPickerProject by remember { mutableStateOf<FeedProjectUi?>(null) }
+
+    vacancyPickerProject?.let { project ->
+        ModalBottomSheet(onDismissRequest = { vacancyPickerProject = null }) {
+            Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text(
+                    text = "Выберите роль для отклика",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = PetMatesTextPrimary,
+                )
+                Spacer(Modifier.height(12.dp))
+                project.openVacancies.forEach { vacancy ->
+                    Card(
+                        onClick = {
+                            vacancyPickerProject = null
+                            onRespondClick(vacancy.vacancyId)
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = PetMatesSurface),
+                    ) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text(vacancy.title, fontWeight = FontWeight.Bold, color = PetMatesTextPrimary)
+                            Text(vacancy.tags.take(4).joinToString(" "), color = PetMatesTextSecondary, modifier = Modifier.padding(top = 4.dp))
+                        }
+                    }
+                }
+                Spacer(Modifier.height(16.dp))
+            }
+        }
     }
 
     Column(
@@ -150,16 +211,19 @@ fun EventsScreen(
             )
         }
 
-        if (isLoading && filtered.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 24.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                CircularProgressIndicator(color = PetMatesPrimary)
-            }
-        } else {
+        when {
+            isLoading && filtered.isEmpty() -> LoadingStateScreen(message = "Загружаем мероприятия...")
+            isServerUnavailable -> ServerUnavailableScreen(onRetryClick = onRetryClick)
+            errorMessage != null -> ErrorStateScreen(message = errorMessage, onRetryClick = onRetryClick)
+            filtered.isEmpty() -> EmptyStateScreen(
+                title = if (query.isBlank()) "Нет проектов" else "Ничего не найдено",
+                message = if (query.isBlank()) {
+                    "Когда появятся проекты, они будут отображаться здесь."
+                } else {
+                    "Попробуйте изменить запрос поиска."
+                },
+            )
+            else -> {
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -171,9 +235,17 @@ fun EventsScreen(
                     ProjectCard(
                         item = item,
                         onClick = { onProjectClick(item.projectId) },
-                        onRespondClick = { item.vacancyId?.let(onRespondClick) },
+                        onRespondClick = {
+                            when {
+                                item.hasPendingResponse -> Unit
+                                item.openVacancies.size > 1 -> vacancyPickerProject = item
+                                item.openVacancies.size == 1 -> onRespondClick(item.openVacancies.first().vacancyId)
+                                else -> Unit
+                            }
+                        },
                     )
                 }
+            }
             }
         }
     }
@@ -218,7 +290,7 @@ private fun ProjectCard(
                     )
                     Spacer(modifier = Modifier.size(6.dp))
                     Text(
-                        text = "${item.ratingCount} оценок",
+                        text = item.ratingSummary(),
                         fontSize = 12.sp,
                         color = PetMatesTextSecondary
                     )
@@ -289,15 +361,29 @@ private fun ProjectCard(
 
                 Button(
                     onClick = onRespondClick,
-                    enabled = item.vacancyId != null,
+                    enabled = item.openVacancies.isNotEmpty() && !item.hasPendingResponse,
                     modifier = Modifier.height(40.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
                 ) {
-                    Text(text = "Откликнуться", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = when {
+                            item.hasPendingResponse -> "Отклик отправлен"
+                            item.openVacancies.isEmpty() -> "Нет открытых ролей"
+                            else -> "Откликнуться"
+                        },
+                        fontWeight = FontWeight.Bold,
+                    )
                 }
             }
         }
     }
 }
 
+private fun FeedProjectUi.ratingSummary(): String =
+    if (ratingCount <= 0) {
+        "Оценок пока нет"
+    } else {
+        val avg = averageRating?.let { " • средняя %.1f".format(it) }.orEmpty()
+        "$ratingCount оценок$avg"
+    }

@@ -68,7 +68,7 @@ class MockUserRepository @Inject constructor(
         data.notifications.removeAll { it.userId == userId || it.referenceId in ownedProjectIds }
         data.projectMembers.removeAll { it.userId == userId || it.projectId in ownedProjectIds }
         data.vacancies.removeAll { it.projectId in ownedProjectIds }
-        data.projectRatings.removeAll { it.first == userId || it.second in ownedProjectIds }
+        data.projectRatings.removeAll { it.userId == userId || it.projectId in ownedProjectIds }
         data.projects.removeAll { it.ownerId == userId }
         data.users.removeAll { it.userId == userId }
         data.currentUserId = null

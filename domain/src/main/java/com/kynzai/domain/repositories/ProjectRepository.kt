@@ -7,6 +7,7 @@ import com.kynzai.domain.common.Page
 import com.kynzai.domain.common.PageToken
 import com.kynzai.domain.common.ProjectFeedQuery
 import com.kynzai.domain.common.SortOrder
+import com.kynzai.domain.models.ProjectRating
 import com.kynzai.domain.models.ProjectStatus
 import java.util.UUID
 
@@ -44,7 +45,13 @@ interface ProjectRepository {
      * защищать её от повторных голосов. Mock-слой реализует это локально для UI-сценариев.
      */
     suspend fun rateProject(projectId: UUID): Result<Project> =
+        rateProject(projectId = projectId, score = 1, comment = null)
+
+    suspend fun rateProject(projectId: UUID, score: Int, comment: String? = null): Result<Project> =
         Result.failure(UnsupportedOperationException("rateProject requires backend RPC"))
+
+    suspend fun getProjectRatings(projectId: UUID): Result<List<ProjectRating>> =
+        Result.failure(UnsupportedOperationException("getProjectRatings requires backend endpoint/RPC"))
 
     suspend fun deleteProject(projectId: UUID): Result<Unit> =
         Result.failure(UnsupportedOperationException("deleteProject is not implemented"))

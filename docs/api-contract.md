@@ -373,3 +373,44 @@ Response: `204 No Content`
 8. `project.deleted` (модерация)
 9. `user.banned` (модерация)
 
+## Supabase/PostgREST контракт для Android real-режима
+
+Пока backend не отдал отдельный REST API, Android real-слой ожидает Supabase endpoints напрямую:
+
+1. Auth:
+   - `POST /auth/v1/token?grant_type=password`
+   - `POST /auth/v1/signup`
+   - `POST /auth/v1/token?grant_type=refresh_token`
+   - `POST /auth/v1/logout`
+
+2. Read-only table endpoints:
+   - `GET /rest/v1/projects?select=*`
+   - `GET /rest/v1/projects?project_id=eq.{id}&limit=1`
+   - `GET /rest/v1/project_members?project_id=eq.{id}`
+   - `GET /rest/v1/vacancies?project_id=eq.{id}`
+   - `GET /rest/v1/vacancies?vacancy_id=eq.{id}&limit=1`
+   - `GET /rest/v1/users?user_id=eq.{id}&limit=1`
+   - `GET /rest/v1/users?nickname=eq.{nickname}&limit=1`
+   - `GET /rest/v1/notifications?user_id=eq.{id}`
+
+3. Write/RPC endpoints, которые Android уже вызывает:
+   - `POST /rest/v1/rpc/update_my_profile`
+   - `POST /rest/v1/rpc/respond_to_vacancy`
+   - `POST /rest/v1/rpc/update_response_status`
+   - `POST /rest/v1/rpc/cancel_response`
+   - `POST /rest/v1/rpc/invite_user`
+   - `POST /rest/v1/rpc/update_invite_status`
+   - `POST /rest/v1/rpc/cancel_invite`
+   - `POST /rest/v1/rpc/rate_project`
+   - `POST /rest/v1/rpc/delete_my_account`
+   - `POST /rest/v1/rpc/delete_project`
+   - `POST /rest/v1/rpc/delete_vacancy`
+
+4. SQL order для dev Supabase:
+   - сначала `docs/supabase-schema.sql`;
+   - затем `docs/supabase-release-foundation.sql`.
+
+5. Ошибки Supabase:
+   - Android ожидает любой non-2xx как ошибку и показывает тело ответа в диагностике;
+   - бизнес-ошибки лучше возвращать как `409`/`403`/`422` через RPC exception или Edge Function;
+   - клиентские проверки остаются только UX, источник истины — RLS/RPC.

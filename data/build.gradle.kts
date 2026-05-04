@@ -56,6 +56,8 @@ dependencies {
     implementation(libsCatalog.findLibrary("ktor-client-core").get())
     implementation(libsCatalog.findLibrary("ktor-client-okhttp").get())
     implementation(libsCatalog.findLibrary("ktor-client-logging").get())
+    testImplementation(libsCatalog.findLibrary("ktor-client-mock").get())
+    testImplementation(libsCatalog.findLibrary("org-json").get())
 
     // Keep Hilt runtime annotations available for @Inject/@Singleton used in this module.
     implementation(libsCatalog.findLibrary("hilt-android").get())

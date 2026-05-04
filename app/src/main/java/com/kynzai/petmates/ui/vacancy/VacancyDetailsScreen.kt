@@ -2,7 +2,6 @@ package com.kynzai.petmates.ui.vacancy
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -21,7 +20,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,8 +39,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
 import com.kynzai.petmates.ui.common.ScreenState
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
 import com.kynzai.petmates.ui.common.UiEvent
+import com.kynzai.petmates.ui.common.isServerUnavailableMessage
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
@@ -86,12 +88,17 @@ fun VacancyDetailsScreen(
         }
     ) { padding ->
         when (val s = state) {
-            ScreenState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PetMatesPrimary)
-            }
+            ScreenState.Loading -> LoadingStateScreen(message = "Загружаем вакансию...")
 
             ScreenState.Unauthorized -> Unit
-            is ScreenState.Error -> Text(s.message, color = PetMatesTextSecondary, modifier = Modifier.padding(padding).padding(16.dp))
+            is ScreenState.Error -> {
+                val modifier = Modifier.padding(padding)
+                if (s.message.isServerUnavailableMessage()) {
+                    ServerUnavailableScreen(modifier = modifier, onRetryClick = { vm.load(vacancyId) })
+                } else {
+                    ErrorStateScreen(modifier = modifier, message = s.message, onRetryClick = { vm.load(vacancyId) })
+                }
+            }
             is ScreenState.Content -> VacancyDetailsContent(
                 data = s.value,
                 modifier = Modifier.padding(padding),

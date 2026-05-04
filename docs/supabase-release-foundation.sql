@@ -196,10 +196,13 @@ using (user_id = auth.uid());
 
 -- 9. PROJECT RATINGS: атомарная защита от повторной оценки.
 create table if not exists public.project_ratings (
+  rating_id uuid primary key default gen_random_uuid(),
   project_id uuid not null references public.projects(project_id) on delete cascade,
   user_id uuid not null references public.users(user_id) on delete cascade,
+  score smallint not null check (score >= 1 and score <= 5),
+  comment text,
   created_at timestamptz not null default now(),
-  primary key (project_id, user_id)
+  unique (project_id, user_id)
 );
 
 alter table public.project_ratings enable row level security;
@@ -450,7 +453,7 @@ end;
 $$;
 
 -- 13. RPC: оценка проекта.
-create or replace function public.rate_project(p_project_id uuid)
+create or replace function public.rate_project(p_project_id uuid, p_score smallint default 5, p_comment text default null)
 returns public.projects
 language plpgsql
 security definer
@@ -462,9 +465,12 @@ begin
   if exists (select 1 from public.projects where project_id = p_project_id and owner_id = auth.uid()) then
     raise exception 'Project owner cannot rate own project';
   end if;
+  if p_score < 1 or p_score > 5 then
+    raise exception 'Rating score must be from 1 to 5';
+  end if;
 
-  insert into public.project_ratings(project_id, user_id)
-  values (p_project_id, auth.uid());
+  insert into public.project_ratings(project_id, user_id, score, comment)
+  values (p_project_id, auth.uid(), p_score, nullif(trim(p_comment), ''));
 
   update public.projects
   set rating_count = rating_count + 1

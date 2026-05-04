@@ -1,5 +1,6 @@
 package com.kynzai.petmates.ui.main
 
+import com.kynzai.data.BuildConfig as DataBuildConfig
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kynzai.petmates.ui.events.EventsRoute
 import com.kynzai.petmates.ui.common.AuthRequiredScreen
+import com.kynzai.petmates.ui.common.DemoModeBanner
 import com.kynzai.petmates.ui.profile.ProfileScreen
 import com.kynzai.petmates.ui.requests.RequestsRoute
 import com.kynzai.petmates.ui.theme.PetMatesBackground
@@ -126,39 +128,49 @@ fun MainScreen(
                 .padding(padding),
             color = PetMatesBackground
         ) {
-            when (MainTab.entries.getOrNull(selectedTab) ?: MainTab.Events) {
-                MainTab.Profile -> {
-                    if (!isAuthorized) {
-                        AuthRequiredScreen(
-                            message = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
-                            onAuthClick = onAuthRequested,
-                        )
-                    } else {
-                        ProfileScreen(
-                            onCreateProjectClick = onCreateProjectClick,
-                            onEditProfileClick = onEditProfileClick,
-                            onLogoutComplete = onLogoutComplete,
-                            onAuthRequested = onAuthRequested,
-                            onOpenProject = onNavigateToProject,
-                            onEditProject = onEditProjectClick,
-                            onCreateVacancy = onCreateVacancyClick,
-                            onOpenVacancy = onNavigateToVacancy,
-                        )
-                    }
+            Column(Modifier.fillMaxSize()) {
+                if (DataBuildConfig.USE_MOCKS) {
+                    DemoModeBanner()
                 }
+                Box(Modifier.weight(1f)) {
+                    when (MainTab.entries.getOrNull(selectedTab) ?: MainTab.Events) {
+                        MainTab.Profile -> {
+                            if (!isAuthorized) {
+                                AuthRequiredScreen(
+                                    message = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
+                                    onAuthClick = onAuthRequested,
+                                )
+                            } else {
+                                ProfileScreen(
+                                    onCreateProjectClick = onCreateProjectClick,
+                                    onEditProfileClick = onEditProfileClick,
+                                    onLogoutComplete = onLogoutComplete,
+                                    onAuthRequested = onAuthRequested,
+                                    onOpenProject = onNavigateToProject,
+                                    onEditProject = onEditProjectClick,
+                                    onCreateVacancy = onCreateVacancyClick,
+                                    onOpenVacancy = onNavigateToVacancy,
+                                )
+                            }
+                        }
 
-                MainTab.Events -> EventsRoute(onProjectClick = onNavigateToProject)
-                MainTab.Requests -> {
-                    if (!isAuthorized) {
-                        AuthRequiredScreen(
-                            message = "Войдите, чтобы смотреть заявки и отклики.",
-                            onAuthClick = onAuthRequested,
+                        MainTab.Events -> EventsRoute(
+                            onProjectClick = onNavigateToProject,
+                            onAuthRequested = onAuthRequested,
                         )
-                    } else {
-                        RequestsRoute()
+                        MainTab.Requests -> {
+                            if (!isAuthorized) {
+                                AuthRequiredScreen(
+                                    message = "Войдите, чтобы смотреть заявки и отклики.",
+                                    onAuthClick = onAuthRequested,
+                                )
+                            } else {
+                                RequestsRoute()
+                            }
+                        }
+                        MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser)
                     }
                 }
-                MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser)
             }
         }
     }

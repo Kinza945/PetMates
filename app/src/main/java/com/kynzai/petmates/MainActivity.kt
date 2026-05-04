@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge() // Делает приложение на весь экран (прозрачный статус-бар)
+        enableEdgeToEdge()
 
         lifecycleScope.launch {
             sessionManager.restoreSession()
@@ -34,7 +34,6 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        // Запускаем наш главный экран с навигацией!
                         AppNavigation(sessionManager = sessionManager)
                     }
                 }

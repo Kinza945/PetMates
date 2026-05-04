@@ -21,7 +21,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -42,6 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kynzai.domain.common.LoadState
+import com.kynzai.petmates.ui.common.EmptyStateScreen
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
+import com.kynzai.petmates.ui.common.isServerUnavailable
+import com.kynzai.petmates.ui.common.toUiMessage
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
@@ -67,6 +72,9 @@ fun UsersRoute(
         onQueryChange = { query = it },
         users = (state as? LoadState.Data)?.value.orEmpty(),
         isLoading = state is LoadState.Loading,
+        errorMessage = (state as? LoadState.Error)?.error?.toUiMessage(),
+        isServerUnavailable = (state as? LoadState.Error)?.error?.isServerUnavailable() == true,
+        onRetryClick = { vm.load(query) },
         onUserClick = onUserClick,
     )
 }
@@ -77,6 +85,9 @@ fun UsersTab(
     onQueryChange: (String) -> Unit,
     users: List<UserCardUi>,
     isLoading: Boolean,
+    errorMessage: String? = null,
+    isServerUnavailable: Boolean = false,
+    onRetryClick: () -> Unit = {},
     onUserClick: (String) -> Unit,
 ) {
     Column(
@@ -105,15 +116,19 @@ fun UsersTab(
 
         Spacer(modifier = Modifier.size(16.dp))
 
-        if (isLoading && users.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-                CircularProgressIndicator(color = PetMatesPrimary)
-            }
-        } else if (users.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Ничего не найдено", color = PetMatesTextSecondary)
-            }
-        } else {
+        when {
+            isLoading && users.isEmpty() -> LoadingStateScreen(message = "Ищем участников...")
+            isServerUnavailable -> ServerUnavailableScreen(onRetryClick = onRetryClick)
+            errorMessage != null -> ErrorStateScreen(message = errorMessage, onRetryClick = onRetryClick)
+            users.isEmpty() -> EmptyStateScreen(
+                title = "Ничего не найдено",
+                message = if (query.isBlank()) {
+                    "Участники появятся после подключения данных."
+                } else {
+                    "Попробуйте изменить запрос поиска."
+                },
+            )
+            else -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -121,6 +136,7 @@ fun UsersTab(
                 items(users, key = { it.nickname }) { user ->
                     UserCard(user = user, onClick = { onUserClick(user.nickname) })
                 }
+            }
             }
         }
     }
@@ -165,4 +181,3 @@ private fun UserCard(
         }
     }
 }
-

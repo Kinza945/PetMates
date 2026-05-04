@@ -8,6 +8,7 @@ import com.kynzai.domain.models.Notification
 import com.kynzai.domain.models.NotificationCategory
 import com.kynzai.domain.models.Project
 import com.kynzai.domain.models.ProjectMember
+import com.kynzai.domain.models.ProjectRating
 import com.kynzai.domain.models.ProjectStatus
 import com.kynzai.domain.models.ReferenceType
 import com.kynzai.domain.models.Response
@@ -34,8 +35,8 @@ class FakeDataSource @Inject constructor() {
      */
     // В реальном приложении текущий пользователь придёт из Auth/JWT. В mock-режиме держим его здесь.
     var currentUserId: UUID? = UUID.fromString("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-    // Пара (userId, projectId) нужна для правила: один пользователь оценивает проект только один раз.
-    val projectRatings: MutableSet<Pair<UUID, UUID>> = mutableSetOf()
+    // История оценок нужна UI: теперь счётчик не "берётся из воздуха", его можно открыть и прочитать.
+    val projectRatings: MutableList<ProjectRating> = mutableListOf()
 
     private val baseNow: Instant = Instant.parse("2026-04-21T12:00:00Z")
 
@@ -259,6 +260,36 @@ class FakeDataSource @Inject constructor() {
         seedUsers()
         seedProjectsAndVacancies()
         seedResponsesInvitesNotifications()
+        seedProjectRatings()
+    }
+
+    private fun seedProjectRatings() {
+        if (projectRatings.isNotEmpty()) return
+        projects.forEachIndexed { projectIndex, project ->
+            val raters = users.filter { it.userId != project.ownerId }
+                .drop(projectIndex % users.size)
+                .take(((project.ratingCount).coerceIn(1, 5)))
+            raters.forEachIndexed { idx, user ->
+                projectRatings.add(
+                    ProjectRating(
+                        ratingId = stableUuid("rating:${project.projectId}:${user.userId}"),
+                        projectId = project.projectId,
+                        userId = user.userId,
+                        score = 3 + ((projectIndex + idx) % 3),
+                        comment = when (idx % 3) {
+                            0 -> "Интересная идея, хочется посмотреть развитие."
+                            1 -> "Хорошо описаны роли и стек."
+                            else -> "Проект выглядит полезным для портфолио."
+                        },
+                        createdAt = baseNow.minusSeconds(60L * 60L * 12L * (idx + 1L)),
+                    )
+                )
+            }
+            val projectIdx = projects.indexOfFirst { it.projectId == project.projectId }
+            if (projectIdx != -1) {
+                projects[projectIdx] = project.copy(ratingCount = projectRatings.count { it.projectId == project.projectId })
+            }
+        }
     }
 
     private fun seedUsers() {

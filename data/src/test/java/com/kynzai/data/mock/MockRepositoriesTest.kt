@@ -143,9 +143,13 @@ class MockRepositoriesTest {
             data.currentUserId = project.ownerId
             assertTrue(projects.rateProject(project.projectId).isFailure)
 
-            data.currentUserId = data.users.first { it.userId != project.ownerId }.userId
+            data.currentUserId = data.users.first { user ->
+                user.userId != project.ownerId &&
+                    data.projectRatings.none { it.projectId == project.projectId && it.userId == user.userId }
+            }.userId
             assertTrue(projects.rateProject(project.projectId).isSuccess)
             assertTrue(projects.rateProject(project.projectId).isFailure)
+            assertTrue(projects.getProjectRatings(project.projectId).getOrThrow().isNotEmpty())
         }
     }
 

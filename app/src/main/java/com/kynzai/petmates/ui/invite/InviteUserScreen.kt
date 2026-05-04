@@ -91,6 +91,22 @@ fun InviteUserScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = PetMatesSurface)
             )
         },
+        bottomBar = {
+            if (isAuthorized && parsed != null) {
+                val selectedUser = (vm.usersState as? LoadState.Data)
+                    ?.value
+                    ?.firstOrNull { it.userId == vm.selectedUserId }
+                InviteBottomBar(
+                    selectedUserName = selectedUser?.nickname,
+                    role = vm.role,
+                    message = vm.message,
+                    isSubmitEnabled = vm.isValid && vm.inviteState !is LoadState.Loading,
+                    onRoleChange = vm::updateRole,
+                    onMessageChange = vm::updateMessage,
+                    onSubmit = { vm.submit(parsed) },
+                )
+            }
+        },
     ) { padding ->
         if (!isAuthorized) {
             AuthRequiredScreen(
@@ -177,72 +193,80 @@ fun InviteUserScreen(
                 else -> item { Text("Введите запрос и нажмите «Найти»", color = PetMatesTextSecondary) }
             }
 
-            item { HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp)) }
+            item { Spacer(modifier = Modifier.height(160.dp)) }
+        }
+    }
+}
 
-            item {
-                Text(
-                    text = "Детали приглашения",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PetMatesTextPrimary
+@Composable
+private fun InviteBottomBar(
+    selectedUserName: String?,
+    role: String,
+    message: String,
+    isSubmitEnabled: Boolean,
+    onRoleChange: (String) -> Unit,
+    onMessageChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        colors = CardDefaults.cardColors(containerColor = PetMatesSurface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+    ) {
+        Column(Modifier.padding(16.dp)) {
+            Text(
+                text = selectedUserName?.let { "Выбран: @$it" } ?: "Выберите пользователя из списка",
+                color = if (selectedUserName == null) PetMatesTextSecondary else PetMatesTextPrimary,
+                fontWeight = FontWeight.Bold,
+            )
+            OutlinedTextField(
+                value = role,
+                onValueChange = onRoleChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .testTag("invite_role"),
+                label = { Text("Роль*") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PetMatesPrimary,
+                    cursorColor = PetMatesPrimary,
+                    unfocusedBorderColor = PetMatesTextSecondary.copy(alpha = 0.5f),
+                    focusedTextColor = PetMatesTextPrimary,
+                    unfocusedTextColor = PetMatesTextPrimary,
                 )
-            }
-
-            item {
-                OutlinedTextField(
-                    value = vm.role,
-                    onValueChange = vm::updateRole,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("invite_role"),
-                    label = { Text("Роль*") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PetMatesPrimary,
-                        cursorColor = PetMatesPrimary,
-                        unfocusedBorderColor = PetMatesTextSecondary.copy(alpha = 0.5f),
-                        focusedTextColor = PetMatesTextPrimary,
-                        unfocusedTextColor = PetMatesTextPrimary,
-                    )
+            )
+            OutlinedTextField(
+                value = message,
+                onValueChange = onMessageChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp)
+                    .testTag("invite_message"),
+                label = { Text("Сообщение") },
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = PetMatesPrimary,
+                    cursorColor = PetMatesPrimary,
+                    unfocusedBorderColor = PetMatesTextSecondary.copy(alpha = 0.5f),
+                    focusedTextColor = PetMatesTextPrimary,
+                    unfocusedTextColor = PetMatesTextPrimary,
                 )
-            }
-
-            item {
-                OutlinedTextField(
-                    value = vm.message,
-                    onValueChange = vm::updateMessage,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("invite_message"),
-                    label = { Text("Сообщение (опционально)") },
-                    singleLine = false,
-                    minLines = 3,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PetMatesPrimary,
-                        cursorColor = PetMatesPrimary,
-                        unfocusedBorderColor = PetMatesTextSecondary.copy(alpha = 0.5f),
-                        focusedTextColor = PetMatesTextPrimary,
-                        unfocusedTextColor = PetMatesTextPrimary,
-                    )
-                )
-            }
-
-            item { Spacer(modifier = Modifier.height(8.dp)) }
-
-            item {
-                Button(
-                    onClick = { vm.submit(parsed) },
-                    enabled = vm.isValid && vm.inviteState !is LoadState.Loading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .testTag("invite_submit"),
-                    colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White),
-                ) {
-                    Text("Отправить приглашение", fontWeight = FontWeight.Bold)
-                }
+            )
+            Button(
+                onClick = onSubmit,
+                enabled = isSubmitEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .padding(top = 8.dp)
+                    .testTag("invite_submit"),
+                colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White),
+            ) {
+                Text("Отправить приглашение", fontWeight = FontWeight.Bold)
             }
         }
     }

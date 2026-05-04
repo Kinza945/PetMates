@@ -27,8 +27,18 @@ data class ProjectDetailsUiState(
     val owner: UserUi,
     val members: List<MemberUi>,
     val vacancies: List<VacancyUi>,
+    val ratings: List<ProjectRatingUi>,
+    val averageRating: Double?,
     val isOwner: Boolean,
     val isAuthorized: Boolean,
+)
+
+data class ProjectRatingUi(
+    val ratingId: String,
+    val userName: String,
+    val score: Int,
+    val comment: String,
+    val date: String,
 )
 
 @HiltViewModel
@@ -65,6 +75,15 @@ class ProjectDetailsViewModel @Inject constructor(
             }
             val members = projects.getProjectMembers(uuid).getOrDefault(emptyList())
             val vacancies = projects.getProjectVacancies(uuid).getOrDefault(emptyList())
+            val ratings = projects.getProjectRatings(uuid).getOrDefault(emptyList()).map { rating ->
+                ProjectRatingUi(
+                    ratingId = rating.ratingId.toString(),
+                    userName = users.getUserById(rating.userId).getOrNull()?.nickname ?: "Unknown",
+                    score = rating.score,
+                    comment = rating.comment.orEmpty(),
+                    date = rating.createdAt?.toString()?.take(10).orEmpty(),
+                )
+            }
             val me = sessionManager.state.value.currentUserId
 
             _state.value = ScreenState.Content(
@@ -73,6 +92,8 @@ class ProjectDetailsViewModel @Inject constructor(
                     owner = owner.toUi(),
                     members = members.map { it.toUi() },
                     vacancies = vacancies.map { it.toUi() },
+                    ratings = ratings,
+                    averageRating = ratings.takeIf { it.isNotEmpty() }?.map { it.score }?.average(),
                     isOwner = me == project.ownerId,
                     isAuthorized = me != null,
                 )
@@ -82,7 +103,7 @@ class ProjectDetailsViewModel @Inject constructor(
 
     fun retry() = load(projectId)
 
-    fun rateProject() {
+    fun rateProject(score: Int = 5, comment: String? = null) {
         val current = (_state.value as? ScreenState.Content)?.value ?: return
         if (!current.isAuthorized) {
             emitAuthRequired()
@@ -94,7 +115,7 @@ class ProjectDetailsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            projects.rateProject(current.project.id.toUuidOrNull()!!)
+            projects.rateProject(current.project.id.toUuidOrNull()!!, score, comment)
                 .onSuccess {
                     emitMessage("Оценка засчитана")
                     retry()

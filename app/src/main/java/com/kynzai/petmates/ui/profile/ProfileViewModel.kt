@@ -29,6 +29,7 @@ data class ProfileUiState(
     val myProjects: List<ProjectUi>,
     val myResponses: List<ProfileResponseUi>,
     val myInvites: List<ProfileInviteUi>,
+    val sentInvites: List<ProfileSentInviteUi>,
 )
 
 data class ProfileResponseUi(
@@ -46,6 +47,17 @@ data class ProfileInviteUi(
     val projectName: String,
     val role: String,
     val statusLabel: String,
+    val isPending: Boolean,
+)
+
+data class ProfileSentInviteUi(
+    val inviteId: String,
+    val projectId: String,
+    val projectName: String,
+    val userName: String,
+    val role: String,
+    val statusLabel: String,
+    val date: String,
     val isPending: Boolean,
 )
 
@@ -98,6 +110,22 @@ class ProfileViewModel @Inject constructor(
                         isPending = invite.status == InviteStatus.PENDING,
                     )
                 }
+            val sentInvites = myProjects.flatMap { project ->
+                invites.getInvitesByProject(project.projectId)
+                    .getOrDefault(emptyList())
+                    .map { invite ->
+                        ProfileSentInviteUi(
+                            inviteId = invite.inviteId.toString(),
+                            projectId = invite.projectId.toString(),
+                            projectName = project.name,
+                            userName = users.getUserById(invite.userId).getOrNull()?.nickname ?: "Unknown",
+                            role = invite.role,
+                            statusLabel = invite.status.toUiLabel(),
+                            date = invite.createdAt?.toString()?.take(10).orEmpty(),
+                            isPending = invite.status == InviteStatus.PENDING,
+                        )
+                    }
+            }.sortedByDescending { it.date }
 
             _state.value = ScreenState.Content(
                 ProfileUiState(
@@ -105,6 +133,7 @@ class ProfileViewModel @Inject constructor(
                     myProjects = myProjects.map { it.toUi() },
                     myResponses = myResponses,
                     myInvites = myInvites,
+                    sentInvites = sentInvites,
                 )
             )
         }
@@ -130,6 +159,20 @@ class ProfileViewModel @Inject constructor(
 
     fun declineInvite(inviteId: String) {
         updateInvite(inviteId, InviteStatus.DECLINED, "Приглашение отклонено")
+    }
+
+    fun cancelSentInvite(inviteId: String) {
+        val id = inviteId.toUuidOrNull() ?: return
+        viewModelScope.launch {
+            invites.cancelInvite(id)
+                .onSuccess {
+                    _events.emit(UiEvent.ShowMessage("Приглашение отменено"))
+                    refresh()
+                }
+                .onFailure {
+                    _events.emit(UiEvent.ShowMessage(it.message ?: "Не удалось отменить приглашение"))
+                }
+        }
     }
 
     private fun updateInvite(inviteId: String, status: InviteStatus, message: String) {

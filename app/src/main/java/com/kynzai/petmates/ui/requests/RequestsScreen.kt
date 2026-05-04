@@ -19,7 +19,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -39,6 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.kynzai.domain.common.LoadState
+import com.kynzai.petmates.ui.common.EmptyStateScreen
+import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.LoadingStateScreen
+import com.kynzai.petmates.ui.common.ServerUnavailableScreen
+import com.kynzai.petmates.ui.common.isServerUnavailable
+import com.kynzai.petmates.ui.common.toUiMessage
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
@@ -63,14 +68,16 @@ fun RequestsRoute(
         state = state,
         onAccept = vm::accept,
         onReject = vm::reject,
+        onRetryClick = vm::refresh,
     )
 }
 
 @Composable
 fun RequestsScreen(
-    state: LoadState<RequestsUiModel> = LoadState.Loading,
+    state: LoadState<RequestsUiModel> = LoadState.Data(demoRequests()),
     onAccept: (UUID) -> Unit = {},
     onReject: (UUID) -> Unit = {},
+    onRetryClick: () -> Unit = {},
 ) {
     var tab by remember { mutableIntStateOf(RequestsTab.Incoming.ordinal) }
 
@@ -109,16 +116,31 @@ fun RequestsScreen(
         }
 
         when (state) {
-            is LoadState.Loading -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PetMatesPrimary)
-            }
+            is LoadState.Loading -> LoadingStateScreen(message = "Загружаем заявки...")
 
-            is LoadState.Error -> Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Не удалось загрузить заявки", color = PetMatesTextSecondary)
+            is LoadState.Error -> {
+                val message = state.error.toUiMessage()
+                if (state.error.isServerUnavailable()) {
+                    ServerUnavailableScreen(onRetryClick = onRetryClick)
+                } else {
+                    ErrorStateScreen(message = message, onRetryClick = onRetryClick)
+                }
             }
 
             is LoadState.Data -> {
                 val data = state.value
+                val visibleItemsCount = if (tab == RequestsTab.Incoming.ordinal) data.incoming.size else data.outgoing.size
+                if (visibleItemsCount == 0) {
+                    EmptyStateScreen(
+                        title = "Нет заявок",
+                        message = if (tab == RequestsTab.Incoming.ordinal) {
+                            "Когда пользователи откликнутся на ваши вакансии, заявки появятся здесь."
+                        } else {
+                            "Ваши отклики на вакансии будут отображаться здесь."
+                        },
+                    )
+                    return@Column
+                }
                 LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
@@ -145,6 +167,27 @@ fun RequestsScreen(
         }
     }
 }
+
+private fun demoRequests(): RequestsUiModel =
+    RequestsUiModel(
+        incoming = listOf(
+            IncomingRequestUi(
+                responseId = UUID.fromString("11111111-1111-1111-1111-111111111111"),
+                fromName = "Dogl1X",
+                date = "14.04.2026",
+                text = "Отклик на роль «Проектировщик информационных систем» в проект «Чат бот семейного ресторана»",
+            )
+        ),
+        outgoing = listOf(
+            OutgoingRequestUi(
+                responseId = UUID.fromString("22222222-2222-2222-2222-222222222222"),
+                projectName = "Приложение Contacts",
+                date = "13.04.2026",
+                text = "Ваш отклик на роль «Backend девелопер»",
+                status = OutgoingStatus.Pending,
+            )
+        ),
+    )
 
 @Composable
 private fun IncomingRequestCard(
@@ -322,4 +365,3 @@ private fun OutgoingStatusPreviewRejected() {
         )
     }
 }
-
