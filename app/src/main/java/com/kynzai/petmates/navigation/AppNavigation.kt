@@ -13,6 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.kynzai.domain.models.LoginRequest
 import com.kynzai.domain.models.RegisterRequest
+import com.kynzai.domain.models.SocialAuthProvider
+import com.kynzai.petmates.auth.OAuthLauncher
 import com.kynzai.petmates.ui.auth.AuthScreen
 import com.kynzai.petmates.ui.invite.InviteUserScreen
 import com.kynzai.petmates.ui.profile.UserProfileScreen
@@ -31,6 +33,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavigation(
     sessionManager: SessionManager,
+    oauthLauncher: OAuthLauncher,
 ) {
     val navController = rememberNavController()
     val session by sessionManager.state.collectAsState()
@@ -80,27 +83,8 @@ fun AppNavigation(
                         navigateAfterAuth()
                     }
                 },
-                onSocialAuth = { nickname, email ->
-                    scope.launch {
-                        val login = sessionManager.login(
-                            LoginRequest(
-                                nicknameOrEmail = nickname,
-                                password = "mock-social",
-                                rememberMe = true,
-                            )
-                        )
-                        val result = if (login.isSuccess) {
-                            login
-                        } else {
-                            sessionManager.register(
-                                RegisterRequest(
-                                    nickname = nickname,
-                                    email = email,
-                                    password = "mock-social",
-                                )
-                            )
-                        }
-
+                onOAuthClick = { provider ->
+                    oauthLauncher.start(context, provider) { result ->
                         result
                             .onSuccess { navigateAfterAuth() }
                             .onFailure(::showAuthError)

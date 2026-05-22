@@ -6,6 +6,7 @@ import com.kynzai.domain.models.AuthSession
 import com.kynzai.domain.models.Gender
 import com.kynzai.domain.models.LoginRequest
 import com.kynzai.domain.models.RegisterRequest
+import com.kynzai.domain.models.SocialAuthProvider
 import com.kynzai.domain.models.SystemRole
 import com.kynzai.domain.models.User
 import com.kynzai.domain.repositories.AuthRepository
@@ -67,6 +68,36 @@ class MockAuthRepository(
         data.currentUserId = null
         storage.clear()
         return Result.success(Unit)
+    }
+
+    override fun buildOAuthAuthorizeUrl(
+        provider: SocialAuthProvider,
+        codeChallenge: String,
+    ): Result<String> =
+        Result.success("mock://oauth/${provider.name.lowercase()}")
+
+    override suspend fun completeOAuthSignIn(
+        callbackUri: String,
+        codeVerifier: String,
+    ): Result<AuthSession> {
+        val providerName = callbackUri.substringAfter("mock://oauth/").substringBefore('?')
+        val provider = SocialAuthProvider.entries.firstOrNull {
+            it.name.equals(providerName, ignoreCase = true)
+        } ?: SocialAuthProvider.GOOGLE
+        val suffix = provider.name.lowercase()
+        val user = data.users.firstOrNull {
+            it.nickname.contains(suffix, ignoreCase = true)
+        } ?: createUser(
+            userId = UUID.randomUUID(),
+            nickname = "${provider.name.lowercase()}_user",
+            email = "$suffix@petmates.local",
+            description = "Пользователь создан через mock OAuth (${provider.name}).",
+        ).also { data.users.add(0, it) }
+
+        val session = user.toSession(email = "$suffix@petmates.local")
+        data.currentUserId = user.userId
+        storage.save(session)
+        return Result.success(session)
     }
 
     override suspend fun restoreSession(): Result<AuthSession?> {

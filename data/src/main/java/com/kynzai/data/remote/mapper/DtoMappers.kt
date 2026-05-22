@@ -1,9 +1,66 @@
 package com.kynzai.data.remote.mapper
 
 import com.kynzai.data.remote.dto.*
+import com.kynzai.data.remote.toContactWireList
+import com.kynzai.data.remote.toStringList
 import com.kynzai.domain.models.*
+import kotlinx.serialization.builtins.ListSerializer
 import java.time.Instant
 import java.util.UUID
+
+internal fun UserProfileDto.toDomain(): User =
+    User(
+        userId = UUID.fromString(userId),
+        nickname = nickname?.takeIf { it.isNotBlank() } ?: "user",
+        avatarUrl = avatarUrl,
+        realName = realName,
+        age = age,
+        gender = gender.toGender(),
+        country = country,
+        city = city,
+        workplace = workplace,
+        profileRole = profileRole,
+        systemRole = systemRole.toSystemRole(),
+        description = description,
+        hardSkills = hardSkills.toStringList(),
+        softSkills = softSkills.toStringList(),
+        contacts = contacts.toContactWireList().map { Contact(name = it.name, link = it.link) },
+        lastOnlineAt = lastOnlineAt?.let(::parseInstantOrNull),
+        createdAt = createdAt?.let(::parseInstantOrNull),
+    )
+
+internal fun UserProfileUpdate.toProfileUpdateDto(): ProfileUpdateRequestDto {
+    val json = com.kynzai.data.network.BackendHttpClientFactory.jsonCodec()
+    val contactsJson = contacts.takeIf { it.isNotEmpty() }?.let { list ->
+        json.encodeToString(
+            ListSerializer(ContactWireDto.serializer()),
+            list.map { ContactWireDto(name = it.name, link = it.link) },
+        )
+    }
+    return ProfileUpdateRequestDto(
+        realName = realName,
+        age = age,
+        gender = gender.toWire().takeUnless { gender == Gender.UNSPECIFIED },
+        country = country,
+        city = city,
+        workplace = workplace,
+        profileRole = profileRole,
+        description = description,
+        hardSkills = hardSkills.takeIf { it.isNotEmpty() }?.joinToString(","),
+        softSkills = softSkills.takeIf { it.isNotEmpty() }?.joinToString(","),
+        contacts = contactsJson,
+    )
+}
+
+private fun Gender.toWire(): String =
+    when (this) {
+        Gender.MALE -> "male"
+        Gender.FEMALE -> "female"
+        Gender.UNSPECIFIED -> "unspecified"
+    }
+
+private fun parseInstantOrNull(raw: String): Instant? =
+    runCatching { Instant.parse(raw) }.getOrNull()
 
 internal fun UserDto.toDomain(): User =
     User(

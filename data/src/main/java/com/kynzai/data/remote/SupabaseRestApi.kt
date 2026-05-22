@@ -27,9 +27,9 @@ class SupabaseRestApi @Inject constructor(
      * Чем меньше логики в транспортном слое, тем проще переключение mock -> real API:
      * UI и use-case продолжают работать через контракты репозиториев.
      */
-    suspend fun getTableJson(table: String, query: Map<String, String> = mapOf("select" to "*")): Result<String> {
+    suspend fun getTableJson(table: String, query: Map<String, String> = mapOf("select" to "*")): Result<String> = runCatching {
         if (config.baseUrl.isBlank()) {
-            return Result.failure(IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data)."))
+            throw IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data).")
         }
 
         val url = config.baseUrl.trimEnd('/') + "/rest/v1/$table"
@@ -40,21 +40,19 @@ class SupabaseRestApi @Inject constructor(
         if (!response.status.isSuccess()) {
             val body = runCatching { response.body<String>() }.getOrNull()
             val details = body?.let { " | $it" }.orEmpty()
-            return Result.failure(
-                IllegalStateException("Supabase GET $table failed: HTTP ${response.status.value} ${response.status.description}$details")
-            )
+            throw IllegalStateException("Supabase GET $table failed: HTTP ${response.status.value} ${response.status.description}$details")
         }
 
-        return Result.success(response.body())
+        response.body()
     }
 
     suspend fun postTableJson(
         table: String,
         bodyJson: String,
         query: Map<String, String> = mapOf("select" to "*"),
-    ): Result<String> {
+    ): Result<String> = runCatching {
         if (config.baseUrl.isBlank()) {
-            return Result.failure(IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data)."))
+            throw IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data).")
         }
 
         val url = config.baseUrl.trimEnd('/') + "/rest/v1/$table"
@@ -66,16 +64,16 @@ class SupabaseRestApi @Inject constructor(
             setBody(bodyJson)
         }
 
-        return response.toJsonResult("POST", table)
+        response.toJsonResult("POST", table).getOrThrow()
     }
 
     suspend fun patchTableJson(
         table: String,
         bodyJson: String,
         query: Map<String, String>,
-    ): Result<String> {
+    ): Result<String> = runCatching {
         if (config.baseUrl.isBlank()) {
-            return Result.failure(IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data)."))
+            throw IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data).")
         }
 
         val url = config.baseUrl.trimEnd('/') + "/rest/v1/$table"
@@ -87,15 +85,15 @@ class SupabaseRestApi @Inject constructor(
             setBody(bodyJson)
         }
 
-        return response.toJsonResult("PATCH", table)
+        response.toJsonResult("PATCH", table).getOrThrow()
     }
 
     suspend fun deleteTableJson(
         table: String,
         query: Map<String, String>,
-    ): Result<Unit> {
+    ): Result<Unit> = runCatching {
         if (config.baseUrl.isBlank()) {
-            return Result.failure(IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data)."))
+            throw IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data).")
         }
 
         val url = config.baseUrl.trimEnd('/') + "/rest/v1/$table"
@@ -107,20 +105,16 @@ class SupabaseRestApi @Inject constructor(
         if (!response.status.isSuccess()) {
             val body = runCatching { response.body<String>() }.getOrNull()
             val details = body?.let { " | $it" }.orEmpty()
-            return Result.failure(
-                IllegalStateException("Supabase DELETE $table failed: HTTP ${response.status.value} ${response.status.description}$details")
-            )
+            throw IllegalStateException("Supabase DELETE $table failed: HTTP ${response.status.value} ${response.status.description}$details")
         }
-
-        return Result.success(Unit)
     }
 
     suspend fun postRpcJson(
         functionName: String,
         bodyJson: String = "{}",
-    ): Result<String> {
+    ): Result<String> = runCatching {
         if (config.baseUrl.isBlank()) {
-            return Result.failure(IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data)."))
+            throw IllegalStateException("SUPABASE_URL is empty (set BuildConfig field in :data).")
         }
 
         val url = config.baseUrl.trimEnd('/') + "/rest/v1/rpc/$functionName"
@@ -129,7 +123,7 @@ class SupabaseRestApi @Inject constructor(
             setBody(bodyJson)
         }
 
-        return response.toJsonResult("RPC", functionName)
+        response.toJsonResult("RPC", functionName).getOrThrow()
     }
 
     private suspend fun io.ktor.client.statement.HttpResponse.toJsonResult(

@@ -52,6 +52,7 @@ dependencies {
     implementation(libsCatalog.findLibrary("androidx-lifecycle-viewmodel-ktx").get())
     implementation(libsCatalog.findLibrary("androidx-lifecycle-viewmodel-compose").get())
     implementation(libs.androidx.activity.compose)
+    implementation(libsCatalog.findLibrary("androidx-browser").get())
 
     // Needed because app-level Hilt modules reference Ktor types (HttpClient).
     implementation(libsCatalog.findLibrary("ktor-client-core").get())

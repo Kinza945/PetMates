@@ -3,6 +3,7 @@ package com.kynzai.petmates.session
 import com.kynzai.domain.models.AuthSession
 import com.kynzai.domain.models.LoginRequest
 import com.kynzai.domain.models.RegisterRequest
+import com.kynzai.domain.models.SocialAuthProvider
 import com.kynzai.domain.repositories.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +44,12 @@ class SessionManager @Inject constructor(
 
     suspend fun register(request: RegisterRequest): Result<AuthSession> =
         authRepository.register(request).onSuccess(::applySession)
+
+    suspend fun completeOAuthSignIn(
+        callbackUri: String,
+        codeVerifier: String,
+    ): Result<AuthSession> =
+        authRepository.completeOAuthSignIn(callbackUri, codeVerifier).onSuccess(::applySession)
 
     suspend fun restoreSession(): Result<AuthSession?> =
         authRepository.restoreSession().onSuccess { session ->

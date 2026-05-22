@@ -53,6 +53,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalContext
 import com.kynzai.domain.models.LoginRequest
 import com.kynzai.domain.models.RegisterRequest
+import com.kynzai.domain.models.SocialAuthProvider
 import com.kynzai.petmates.R
 
 private val Primary = Color(0xFF40B4A4)
@@ -67,7 +68,7 @@ fun AuthScreen(
     onLogin: (LoginRequest) -> Unit,
     onRegister: (RegisterRequest) -> Unit,
     onGuestContinue: () -> Unit,
-    onSocialAuth: (nickname: String, email: String) -> Unit = { _, _ -> },
+    onOAuthClick: (SocialAuthProvider) -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -324,24 +325,18 @@ fun AuthScreen(
             ) {
                 SocialCircleButton(
                     iconRes = R.drawable.ic_google,
-                    onClick = {
-                        Toast.makeText(context, "Google вход (мок)", Toast.LENGTH_SHORT).show()
-                        onSocialAuth("Google_User", "google@test.com")
-                    }
+                    modifier = Modifier.testTag("auth_oauth_google"),
+                    onClick = { onOAuthClick(SocialAuthProvider.GOOGLE) },
                 )
                 SocialCircleButton(
                     iconRes = R.drawable.ic_github,
-                    onClick = {
-                        Toast.makeText(context, "GitHub вход (мок)", Toast.LENGTH_SHORT).show()
-                        onSocialAuth("Github_User", "github@test.com")
-                    }
+                    modifier = Modifier.testTag("auth_oauth_github"),
+                    onClick = { onOAuthClick(SocialAuthProvider.GITHUB) },
                 )
                 SocialCircleButton(
-                    iconRes = R.drawable.ic_telegram,
-                    onClick = {
-                        Toast.makeText(context, "Telegram вход (мок)", Toast.LENGTH_SHORT).show()
-                        onSocialAuth("Telegram_User", "telegram@test.com")
-                    }
+                    iconRes = R.drawable.ic_twitch,
+                    modifier = Modifier.testTag("auth_oauth_twitch"),
+                    onClick = { onOAuthClick(SocialAuthProvider.TWITCH) },
                 )
 
 
@@ -429,11 +424,12 @@ private fun AuthPasswordField(
 @Composable
 private fun SocialCircleButton(
     iconRes: Int,
-    onClick: () -> Unit = {}
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier.size(56.dp),
+        modifier = modifier.size(56.dp),
         shape = RoundedCornerShape(percent = 50),
         contentPadding = PaddingValues(0.dp)
     ) {

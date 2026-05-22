@@ -52,7 +52,7 @@ class MainScreenTest {
         }
 
         // Content description is stable for IconButton.
-        rule.onNodeWithText("Мероприятия").assertExists()
+        rule.onNodeWithText("Заявки").assertExists()
         rule.onNodeWithContentDescription("Уведомления").performClick()
 
         rule.runOnIdle { assertTrue(called) }

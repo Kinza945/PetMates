@@ -2,9 +2,11 @@ package com.kynzai.petmates.di
 
 import android.content.Context
 import com.kynzai.data.BuildConfig as DataBuildConfig
+import com.kynzai.data.auth.AuthSessionStorage
 import com.kynzai.data.auth.EncryptedAuthSessionStorage
 import com.kynzai.data.auth.SharedPreferencesAuthSessionStorage
 import com.kynzai.data.mock.FakeDataSource
+import com.kynzai.data.remote.BackendApi
 import com.kynzai.data.remote.SupabaseAuthApi
 import com.kynzai.data.remote.SupabaseRestApi
 import com.kynzai.data.repositories.AuthRepositoryImpl
@@ -40,18 +42,34 @@ import javax.inject.Singleton
 object DataRepositoryModule {
     @Provides
     @Singleton
-    fun provideAuthRepository(
+    fun provideAuthSessionStorage(
         @ApplicationContext context: Context,
-        fake: FakeDataSource,
-        authApi: SupabaseAuthApi,
-    ): AuthRepository {
+    ): AuthSessionStorage {
         val prefs = context.getSharedPreferences("petmates_auth", Context.MODE_PRIVATE)
         return if (DataBuildConfig.USE_MOCKS) {
-            MockAuthRepository(fake, SharedPreferencesAuthSessionStorage(prefs))
+            SharedPreferencesAuthSessionStorage(prefs)
         } else {
-            AuthRepositoryImpl(authApi, EncryptedAuthSessionStorage(prefs))
+            EncryptedAuthSessionStorage(prefs)
         }
     }
+
+    @Provides
+    @Singleton
+    fun provideAuthRepository(
+        fake: FakeDataSource,
+        backendApi: BackendApi,
+        oauthApi: SupabaseAuthApi,
+        storage: AuthSessionStorage,
+    ): AuthRepository =
+        if (DataBuildConfig.USE_MOCKS) {
+            MockAuthRepository(fake, storage)
+        } else {
+            AuthRepositoryImpl(
+                api = backendApi,
+                oauthApi = oauthApi,
+                storage = storage,
+            )
+        }
 
     @Provides
     @Singleton
@@ -64,10 +82,10 @@ object DataRepositoryModule {
     @Provides
     @Singleton
     fun provideUserRepository(
-        api: SupabaseRestApi,
+        backendApi: BackendApi,
         fake: FakeDataSource,
     ): UserRepository =
-        if (DataBuildConfig.USE_MOCKS) MockUserRepository(fake) else UserRepositoryImpl(api)
+        if (DataBuildConfig.USE_MOCKS) MockUserRepository(fake) else UserRepositoryImpl(backendApi)
 
     @Provides
     @Singleton

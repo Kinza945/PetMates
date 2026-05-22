@@ -2,6 +2,7 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 val libsCatalog = extensions.getByType(VersionCatalogsExtension::class.java).named("libs")
@@ -18,8 +19,10 @@ android {
         minSdk = 26
         val supabaseUrl = providers.gradleProperty("SUPABASE_URL").orNull ?: System.getenv("SUPABASE_URL") ?: ""
         val supabaseAnonKey = providers.gradleProperty("SUPABASE_ANON_KEY").orNull ?: System.getenv("SUPABASE_ANON_KEY") ?: ""
+        val apiBaseUrl = providers.gradleProperty("API_BASE_URL").orNull ?: System.getenv("API_BASE_URL") ?: ""
         buildConfigField("String", "SUPABASE_URL", "\"$supabaseUrl\"")
         buildConfigField("String", "SUPABASE_ANON_KEY", "\"$supabaseAnonKey\"")
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
         val useMocks = (providers.gradleProperty("USE_MOCKS").orNull ?: System.getenv("USE_MOCKS") ?: "true")
         buildConfigField("boolean", "USE_MOCKS", useMocks)
 
@@ -56,6 +59,9 @@ dependencies {
     implementation(libsCatalog.findLibrary("ktor-client-core").get())
     implementation(libsCatalog.findLibrary("ktor-client-okhttp").get())
     implementation(libsCatalog.findLibrary("ktor-client-logging").get())
+    implementation(libsCatalog.findLibrary("ktor-client-content-negotiation").get())
+    implementation(libsCatalog.findLibrary("ktor-serialization-kotlinx-json").get())
+    implementation(libsCatalog.findLibrary("kotlinx-serialization-json").get())
     testImplementation(libsCatalog.findLibrary("ktor-client-mock").get())
     testImplementation(libsCatalog.findLibrary("org-json").get())
 

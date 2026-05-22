@@ -38,11 +38,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kynzai.petmates.ui.events.EventsRoute
 import com.kynzai.petmates.ui.common.AuthRequiredScreen
 import com.kynzai.petmates.ui.common.DemoModeBanner
+import com.kynzai.petmates.ui.common.InDevelopmentScreen
+import com.kynzai.petmates.ui.common.VacanciesPlaceholderScreen
 import com.kynzai.petmates.ui.profile.ProfileScreen
-import com.kynzai.petmates.ui.requests.RequestsRoute
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
@@ -50,7 +50,7 @@ import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
 import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
 import com.kynzai.petmates.ui.users.UsersRoute
 
-private enum class MainTab { Profile, Events, Requests, Users }
+private enum class MainTab { Profile, Vacancies, Responses, Users }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +67,7 @@ fun MainScreen(
     onNavigateToProject: (String) -> Unit = {},
     onNavigateToUser: (String) -> Unit = {},
 ) {
-    var selectedTab by remember { mutableIntStateOf(MainTab.Events.ordinal) }
+    var selectedTab by remember { mutableIntStateOf(MainTab.Vacancies.ordinal) }
 
     Scaffold(
         containerColor = PetMatesSurface,
@@ -102,16 +102,16 @@ fun MainScreen(
                     onClick = { selectedTab = MainTab.Profile.ordinal }
                 )
                 BottomItem(
-                    selected = selectedTab == MainTab.Events.ordinal,
-                    label = "Мероприятия",
+                    selected = selectedTab == MainTab.Vacancies.ordinal,
+                    label = "Заявки",
                     icon = Icons.Default.Event,
-                    onClick = { selectedTab = MainTab.Events.ordinal }
+                    onClick = { selectedTab = MainTab.Vacancies.ordinal }
                 )
                 BottomItem(
-                    selected = selectedTab == MainTab.Requests.ordinal,
-                    label = "Заявки",
+                    selected = selectedTab == MainTab.Responses.ordinal,
+                    label = "Отклики",
                     icon = Icons.Default.Description,
-                    onClick = { selectedTab = MainTab.Requests.ordinal }
+                    onClick = { selectedTab = MainTab.Responses.ordinal }
                 )
                 BottomItem(
                     selected = selectedTab == MainTab.Users.ordinal,
@@ -133,7 +133,7 @@ fun MainScreen(
                     DemoModeBanner()
                 }
                 Box(Modifier.weight(1f)) {
-                    when (MainTab.entries.getOrNull(selectedTab) ?: MainTab.Events) {
+                    when (MainTab.entries.getOrNull(selectedTab) ?: MainTab.Vacancies) {
                         MainTab.Profile -> {
                             if (!isAuthorized) {
                                 AuthRequiredScreen(
@@ -154,20 +154,10 @@ fun MainScreen(
                             }
                         }
 
-                        MainTab.Events -> EventsRoute(
-                            onProjectClick = onNavigateToProject,
-                            onAuthRequested = onAuthRequested,
+                        MainTab.Vacancies -> VacanciesPlaceholderScreen()
+                        MainTab.Responses -> InDevelopmentScreen(
+                            message = "Отклики и входящие заявки на вакансии пока в разработке.",
                         )
-                        MainTab.Requests -> {
-                            if (!isAuthorized) {
-                                AuthRequiredScreen(
-                                    message = "Войдите, чтобы смотреть заявки и отклики.",
-                                    onAuthClick = onAuthRequested,
-                                )
-                            } else {
-                                RequestsRoute()
-                            }
-                        }
                         MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser)
                     }
                 }
