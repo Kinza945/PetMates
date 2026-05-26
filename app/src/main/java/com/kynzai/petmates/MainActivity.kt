@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
 
     private fun handleOAuthIntent(intent: Intent?) {
         val uri = intent?.data ?: return
-        if (uri.scheme == "com.kynzai.petmates" && uri.host == "auth-callback") {
+        if (uri.scheme == "petmates" && uri.host == "callback") {
             oauthLauncher.handleCallback(uri)
             intent.data = null
         }
