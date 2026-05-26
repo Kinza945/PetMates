@@ -25,7 +25,8 @@ class SupabaseAuthApi @Inject constructor(
     private val config: SupabaseConfig,
 ) {
     companion object {
-        const val OAUTH_REDIRECT_URI = "com.kynzai.petmates://auth-callback"
+        //const val OAUTH_REDIRECT_URI = "com.kynzai.petmates://auth-callback"
+        const val OAUTH_REDIRECT_URI = "petmates://callback"
     }
     /*
      * Обёртка над Supabase Auth REST API.

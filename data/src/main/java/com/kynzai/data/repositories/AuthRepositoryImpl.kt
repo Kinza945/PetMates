@@ -1,18 +1,15 @@
 package com.kynzai.data.repositories
 
 import com.kynzai.data.auth.AuthSessionStorage
-import com.kynzai.data.remote.BackendApi
 import com.kynzai.data.remote.SupabaseAuthApi
 import com.kynzai.domain.models.AuthSession
 import com.kynzai.domain.models.LoginRequest
 import com.kynzai.domain.models.RegisterRequest
 import com.kynzai.domain.models.SocialAuthProvider
 import com.kynzai.domain.repositories.AuthRepository
-import java.util.UUID
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
-    private val api: BackendApi,
     private val oauthApi: SupabaseAuthApi,
     private val storage: AuthSessionStorage,
 ) : AuthRepository {
@@ -25,16 +22,7 @@ class AuthRepositoryImpl @Inject constructor(
             return validation("Login requires email address")
         }
 
-        return api.login(email, request.password)
-            .mapCatching { response ->
-                AuthSession(
-                    userId = UUID.fromString(response.userId),
-                    nickname = email.substringBefore("@"),
-                    email = response.email ?: email,
-                    accessToken = response.accessToken,
-                    refreshToken = response.refreshToken,
-                )
-            }
+        return oauthApi.signInWithEmail(email, request.password)
             .onSuccess { session ->
                 if (request.rememberMe) storage.save(session) else storage.clear()
             }
@@ -47,20 +35,15 @@ class AuthRepositoryImpl @Inject constructor(
             return validation("Nickname, email and password are required")
         }
 
-        return api.register(nickname, email, request.password)
-            .mapCatching { response ->
-                AuthSession(
-                    userId = UUID.fromString(response.userId),
-                    nickname = nickname,
-                    email = response.email ?: email,
-                    accessToken = response.accessToken,
-                    refreshToken = response.refreshToken,
-                )
-            }
+        return oauthApi.signUp(email, request.password, nickname)
             .onSuccess(storage::save)
     }
 
     override suspend fun logout(): Result<Unit> {
+        val token = storage.load()?.accessToken
+        if (token != null) {
+            runCatching { oauthApi.logout(token) }
+        }
         storage.clear()
         return Result.success(Unit)
     }

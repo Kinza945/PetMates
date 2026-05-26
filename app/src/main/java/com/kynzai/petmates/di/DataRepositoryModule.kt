@@ -57,7 +57,6 @@ object DataRepositoryModule {
     @Singleton
     fun provideAuthRepository(
         fake: FakeDataSource,
-        backendApi: BackendApi,
         oauthApi: SupabaseAuthApi,
         storage: AuthSessionStorage,
     ): AuthRepository =
@@ -65,7 +64,6 @@ object DataRepositoryModule {
             MockAuthRepository(fake, storage)
         } else {
             AuthRepositoryImpl(
-                api = backendApi,
                 oauthApi = oauthApi,
                 storage = storage,
             )
@@ -82,10 +80,10 @@ object DataRepositoryModule {
     @Provides
     @Singleton
     fun provideUserRepository(
-        backendApi: BackendApi,
+        api: SupabaseRestApi,
         fake: FakeDataSource,
     ): UserRepository =
-        if (DataBuildConfig.USE_MOCKS) MockUserRepository(fake) else UserRepositoryImpl(backendApi)
+        if (DataBuildConfig.USE_MOCKS) MockUserRepository(fake) else UserRepositoryImpl(api)
 
     @Provides
     @Singleton

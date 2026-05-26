@@ -1,46 +1,76 @@
 package com.kynzai.data.repositories
 
-import com.kynzai.data.remote.BackendApi
+import com.kynzai.data.remote.JSONArrayObjects
+import com.kynzai.data.remote.SupabaseRestApi
+import com.kynzai.data.remote.dto.UserDto
+import com.kynzai.data.remote.firstObjectFromArray
 import com.kynzai.data.remote.mapper.toDomain
-import com.kynzai.data.remote.mapper.toProfileUpdateDto
+import com.kynzai.data.remote.objectFromRpc
+import com.kynzai.data.remote.toJsonBody
 import com.kynzai.domain.models.User
 import com.kynzai.domain.models.UserProfileUpdate
 import com.kynzai.domain.repositories.UserRepository
+import org.json.JSONArray
 import java.util.UUID
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    private val api: BackendApi,
+    private val api: SupabaseRestApi,
 ) : UserRepository {
     override suspend fun getUserById(userId: UUID): Result<User> =
-        api.getUserById(userId.toString()).mapCatching { it.toDomain() }
+        api.getTableJson(
+            table = "users",
+            query = mapOf(
+                "select" to "*",
+                "user_id" to "eq.$userId",
+                "limit" to "1"
+            )
+        ).mapCatching { raw ->
+            val arr = JSONArray(raw)
+            val obj = arr.optJSONObject(0) ?: error("User not found: $userId")
+            UserDto.fromJson(obj).toDomain()
+        }
 
     override suspend fun getUserByNickname(nickname: String): Result<User> =
-        api.getAllUsers().mapCatching { users ->
-            users.firstOrNull { it.nickname.equals(nickname, ignoreCase = true) }?.toDomain()
-                ?: error("User not found: $nickname")
+        api.getTableJson(
+            table = "users",
+            query = mapOf(
+                "select" to "*",
+                "nickname" to "eq.$nickname",
+                "limit" to "1"
+            )
+        ).mapCatching { raw ->
+            val arr = JSONArray(raw)
+            val obj = arr.optJSONObject(0) ?: error("User not found: $nickname")
+            UserDto.fromJson(obj).toDomain()
         }
 
-    override suspend fun searchUsers(query: String): Result<List<User>> {
-        val q = query.trim()
-        return api.getAllUsers().mapCatching { users ->
-            val mapped = users.map { it.toDomain() }
-            if (q.isBlank()) {
-                mapped
-            } else {
-                mapped.filter { user ->
-                    user.nickname.contains(q, ignoreCase = true) ||
-                        (user.profileRole?.contains(q, ignoreCase = true) == true) ||
-                        user.hardSkills.any { it.contains(q, ignoreCase = true) } ||
-                        user.softSkills.any { it.contains(q, ignoreCase = true) }
-                }
-            }
+    override suspend fun searchUsers(query: String): Result<List<User>> =
+        api.getTableJson(
+            table = "users",
+            query = mapOf(
+                "select" to "*",
+                "nickname" to "ilike.*$query*",
+                "limit" to "50"
+            )
+        ).mapCatching { raw ->
+            val arr = JSONArray(raw)
+            JSONArrayObjects(arr)
+                .map { UserDto.fromJson(it).toDomain() }
+                .toList()
         }
-    }
 
     override suspend fun updateProfile(update: UserProfileUpdate): Result<User> =
-        api.updateMyProfile(update.toProfileUpdateDto()).mapCatching { it.toDomain() }
+        api.postRpcJson(
+            functionName = "update_my_profile",
+            bodyJson = update.toJsonBody(),
+        ).mapCatching { raw ->
+            UserDto.fromJson(objectFromRpc(raw)).toDomain()
+        }
 
     override suspend fun deleteAccount(): Result<Unit> =
-        Result.failure(UnsupportedOperationException("deleteAccount is not implemented on backend API"))
+        api.postRpcJson(
+            functionName = "delete_my_account",
+            bodyJson = "{}",
+        ).map { Unit }
 }
