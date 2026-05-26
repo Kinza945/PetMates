@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -102,6 +104,7 @@ fun ProfileScreen(
     onOpenVacancy: (String) -> Unit = {},
     vm: ProfileViewModel = hiltViewModel(),
 ) {
+    val scrollState = rememberScrollState()
     val state by vm.state.collectAsState()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -155,6 +158,7 @@ fun ProfileScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(PetMatesSurface)
+            .verticalScroll(rememberScrollState())
     ) {
         // Шапка профиля: теперь данные приходят из ProfileViewModel, а не из hardcoded макета.
         Column(
@@ -282,7 +286,7 @@ fun ProfileScreen(
         }
 
         // Контент вкладок должен иметь ограниченную высоту, иначе Compose падает на вложенных scroll-контейнерах.
-        Box(modifier = Modifier.weight(1f)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
             when (ProfileTab.entries.getOrNull(selectedTab) ?: ProfileTab.Info) {
                 ProfileTab.Info -> InfoTab(
                     modifier = Modifier.fillMaxSize(),
@@ -355,53 +359,43 @@ private fun InfoTab(
 ) {
     val tagBg = PetMatesPrimary.copy(alpha = 0.25f)
 
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+    Column(
+        modifier = modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            SectionTitle("Описание:")
-            Text(text = description, color = PetMatesTextPrimary, fontSize = 14.sp)
-        }
+        SectionTitle("Описание:")
+        Text(text = description, color = PetMatesTextPrimary, fontSize = 14.sp)
 
-        item {
-            SectionTitle("Для связи:")
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                contacts.forEach { contact ->
-                    Text(
-                        text = "${contact.name}: ${contact.link}",
-                        color = PetMatesTextPrimary,
-                        fontSize = 14.sp,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+        SectionTitle("Для связи:")
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            contacts.forEach { contact ->
+                Text(
+                    text = "${contact.name}: ${contact.link}",
+                    color = PetMatesTextPrimary,
+                    fontSize = 14.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
 
-        item {
-            SectionTitle("hard-skills:")
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                hardSkills.forEach { Chip(text = it, background = tagBg) }
-            }
+        SectionTitle("hard-skills:")
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            hardSkills.forEach { Chip(text = it, background = tagBg) }
         }
 
-        item {
-            SectionTitle("soft-skills:")
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                softSkills.forEach { Chip(text = it, background = tagBg) }
-            }
+        SectionTitle("soft-skills:")
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            softSkills.forEach { Chip(text = it, background = tagBg) }
         }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -421,16 +415,16 @@ private fun ActivityTab(
     onCancelSentInvite: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+    // ВАЖНО: LazyColumn заменен на Column
+    Column(
+        modifier = modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        item { SectionTitle("Мои проекты") }
+        SectionTitle("Мои проекты")
         if (myProjects.isEmpty()) {
-            item { EmptyActivityText("У вас пока нет проектов.") }
+            EmptyActivityText("У вас пока нет проектов.")
         } else {
-            items(myProjects, key = { it.id }) { project ->
+            myProjects.forEach { project ->
                 ActivityCard {
                     Text(project.name, color = PetMatesTextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                     Text(project.shortDescription, color = PetMatesTextSecondary, modifier = Modifier.padding(top = 4.dp))
@@ -457,11 +451,11 @@ private fun ActivityTab(
             }
         }
 
-        item { SectionTitle("Мои отклики") }
+        SectionTitle("Мои отклики")
         if (myResponses.isEmpty()) {
-            item { EmptyActivityText("Вы пока не откликались на вакансии.") }
+            EmptyActivityText("Вы пока не откликались на вакансии.")
         } else {
-            items(myResponses, key = { it.responseId }) { response ->
+            myResponses.forEach { response ->
                 ActivityCard {
                     Text(response.projectName, color = PetMatesPrimary, fontWeight = FontWeight.Bold)
                     Text("Отклик на роль «${response.vacancyTitle}»", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
@@ -488,11 +482,11 @@ private fun ActivityTab(
             }
         }
 
-        item { SectionTitle("Входящие приглашения") }
+        SectionTitle("Входящие приглашения")
         if (myInvites.isEmpty()) {
-            item { EmptyActivityText("Входящих приглашений пока нет.") }
+            EmptyActivityText("Входящих приглашений пока нет.")
         } else {
-            items(myInvites, key = { it.inviteId }) { invite ->
+            myInvites.forEach { invite ->
                 ActivityCard {
                     Text(invite.projectName, color = PetMatesPrimary, fontWeight = FontWeight.Bold)
                     Text("Роль: ${invite.role}", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
@@ -519,11 +513,11 @@ private fun ActivityTab(
             }
         }
 
-        item { SectionTitle("Отправленные приглашения") }
+        SectionTitle("Отправленные приглашения")
         if (sentInvites.isEmpty()) {
-            item { EmptyActivityText("Вы пока никого не приглашали в свои проекты.") }
+            EmptyActivityText("Вы пока никого не приглашали в свои проекты.")
         } else {
-            items(sentInvites, key = { it.inviteId }) { invite ->
+            sentInvites.forEach { invite ->
                 ActivityCard {
                     Text(invite.projectName, color = PetMatesPrimary, fontWeight = FontWeight.Bold)
                     Text("Кому: @${invite.userName}", color = PetMatesTextPrimary, modifier = Modifier.padding(top = 4.dp))
@@ -542,8 +536,7 @@ private fun ActivityTab(
                 }
             }
         }
-
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -585,7 +578,6 @@ private fun Chip(text: String, background: Color) {
         Text(text = text, color = TagText, fontSize = 12.sp)
     }
 }
-
 @Composable
 fun SettingsTab(
     accountName: String,
@@ -609,93 +601,86 @@ fun SettingsTab(
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize().testTag("profile_settings_tab"),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
-        ) {
-            item { SettingsHeader(accountName = accountName) }
+    // Заменяем Box + LazyColumn на простой Column
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        SettingsHeader(accountName = accountName)
 
-            item {
-                SettingsCard(title = "Аккаунт") {
-                    SettingsActionRow(
-                        title = "Редактировать профиль",
-                        subtitle = "Имя, город, роль, навыки и контакты",
-                        onClick = onEditProfileClick,
-                    )
-                    HorizontalDivider()
-                    SettingsActionRow(
-                        title = "Сменить почту",
-                        subtitle = "Mock-сценарий до подключения Auth API",
-                        onClick = vm::changeEmail,
-                    )
-                    HorizontalDivider()
-                    SettingsActionRow(
-                        title = "Сменить пароль",
-                        subtitle = "Mock-сценарий до подключения Auth API",
-                        onClick = vm::changePassword,
-                    )
-                }
-            }
+        SettingsCard(title = "Аккаунт") {
+            SettingsActionRow(
+                title = "Редактировать профиль",
+                subtitle = "Имя, город, роль, навыки и контакты",
+                onClick = onEditProfileClick,
+            )
+            HorizontalDivider()
+            SettingsActionRow(
+                title = "Сменить почту",
+                subtitle = "Mock-сценарий до подключения Auth API",
+                onClick = vm::changeEmail,
+            )
+            HorizontalDivider()
+            SettingsActionRow(
+                title = "Сменить пароль",
+                subtitle = "Mock-сценарий до подключения Auth API",
+                onClick = vm::changePassword,
+            )
+        }
 
-            item {
-                SettingsCard(title = "Уведомления") {
-                    SettingsSwitchRow(
-                        title = "Отклики",
-                        subtitle = "Новые отклики и изменение статуса",
-                        checked = state.responseNotifications,
-                        onCheckedChange = vm::setResponseNotifications,
-                    )
-                    HorizontalDivider()
-                    SettingsSwitchRow(
-                        title = "Приглашения",
-                        subtitle = "Входящие приглашения в проекты",
-                        checked = state.inviteNotifications,
-                        onCheckedChange = vm::setInviteNotifications,
-                    )
-                    HorizontalDivider()
-                    SettingsSwitchRow(
-                        title = "Проекты",
-                        subtitle = "Обновления статуса и активности",
-                        checked = state.projectNotifications,
-                        onCheckedChange = vm::setProjectNotifications,
-                    )
-                }
-            }
+        SettingsCard(title = "Уведомления") {
+            SettingsSwitchRow(
+                title = "Отклики",
+                subtitle = "Новые отклики и изменение статуса",
+                checked = state.responseNotifications,
+                onCheckedChange = vm::setResponseNotifications,
+            )
+            HorizontalDivider()
+            SettingsSwitchRow(
+                title = "Приглашения",
+                subtitle = "Входящие приглашения в проекты",
+                checked = state.inviteNotifications,
+                onCheckedChange = vm::setInviteNotifications,
+            )
+            HorizontalDivider()
+            SettingsSwitchRow(
+                title = "Проекты",
+                subtitle = "Обновления статуса и активности",
+                checked = state.projectNotifications,
+                onCheckedChange = vm::setProjectNotifications,
+            )
+        }
 
-            item {
-                SettingsCard(title = "Безопасность") {
-                    SettingsActionRow(
-                        title = "Выйти из аккаунта",
-                        subtitle = "Завершить текущую mock-сессию",
-                        titleColor = Danger,
-                        onClick = { showLogoutDialog = true },
-                    )
-                }
-            }
+        SettingsCard(title = "Безопасность") {
+            SettingsActionRow(
+                title = "Выйти из аккаунта",
+                subtitle = "Завершить текущую mock-сессию",
+                titleColor = Danger,
+                onClick = { showLogoutDialog = true },
+            )
+        }
 
-            item {
-                SettingsCard(title = "Опасная зона", titleColor = Danger) {
-                    Text(
-                        text = "Удаление аккаунта пока работает как mock-заглушка. После подключения API здесь будет подтверждение и серверное удаление.",
-                        color = PetMatesTextSecondary,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
-                    )
-                    OutlinedButton(
-                        onClick = { showDeleteDialog = true },
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Danger),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
-                    ) {
-                        Text("Удалить аккаунт", fontWeight = FontWeight.Bold)
-                    }
-                }
+        SettingsCard(title = "Опасная зона", titleColor = Danger) {
+            Text(
+                text = "Удаление аккаунта пока работает как mock-заглушка. После подключения API здесь будет подтверждение и серверное удаление.",
+                color = PetMatesTextSecondary,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+            )
+            OutlinedButton(
+                onClick = { showDeleteDialog = true },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Danger),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Danger)
+            ) {
+                Text("Удалить аккаунт", fontWeight = FontWeight.Bold)
             }
         }
 
+        // Диалоги можно оставить внизу, так как они не являются частью скроллируемого потока
         if (showLogoutDialog) {
             LogoutDialog(
                 isBusy = state.isBusy,
