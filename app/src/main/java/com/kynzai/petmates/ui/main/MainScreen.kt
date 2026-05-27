@@ -39,17 +39,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.kynzai.petmates.ui.common.AuthRequiredScreen
 import com.kynzai.petmates.ui.common.DemoModeBanner
 import com.kynzai.petmates.ui.common.InDevelopmentScreen
 import com.kynzai.petmates.ui.common.VacanciesPlaceholderScreen
 import com.kynzai.petmates.ui.profile.ProfileScreen
+import com.kynzai.petmates.ui.profile.ProfileViewModel
 import com.kynzai.petmates.ui.theme.PetMatesBackground
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
 import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
 import com.kynzai.petmates.ui.theme.PetMatesTextSecondary
 import com.kynzai.petmates.ui.users.UsersRoute
+import com.kynzai.petmates.ui.users.UsersViewModel
 
 private enum class MainTab { Profile, Vacancies, Responses, Users }
 
@@ -68,6 +71,10 @@ fun MainScreen(
     onNavigateToProject: (String) -> Unit = {},
     onNavigateToUser: (String) -> Unit = {},
 ) {
+    // Скоблим ViewModel на MainScreen, чтобы они не пересоздавались при переключении вкладок.
+    val profileVm: ProfileViewModel = hiltViewModel()
+    val usersVm: UsersViewModel = hiltViewModel()
+
     var selectedTab by rememberSaveable { mutableIntStateOf(MainTab.Vacancies.ordinal) }
     Scaffold(
         containerColor = PetMatesSurface,
@@ -150,6 +157,7 @@ fun MainScreen(
                                     onEditProject = onEditProjectClick,
                                     onCreateVacancy = onCreateVacancyClick,
                                     onOpenVacancy = onNavigateToVacancy,
+                                    vm = profileVm,
                                 )
                             }
                         }
@@ -158,7 +166,7 @@ fun MainScreen(
                         MainTab.Responses -> InDevelopmentScreen(
                             message = "Отклики и входящие заявки на вакансии пока в разработке.",
                         )
-                        MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser)
+                        MainTab.Users -> UsersRoute(onUserClick = onNavigateToUser, vm = usersVm)
                     }
                 }
             }

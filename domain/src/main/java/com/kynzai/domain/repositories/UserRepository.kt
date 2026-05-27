@@ -1,14 +1,19 @@
 package com.kynzai.domain.repositories
 
+import com.kynzai.domain.common.CachedResource
 import com.kynzai.domain.models.User
 import com.kynzai.domain.models.UserProfileUpdate
 import com.kynzai.domain.common.Page
 import com.kynzai.domain.common.PageToken
 import com.kynzai.domain.common.SortOrder
 import com.kynzai.domain.common.UserSearchQuery
+import kotlinx.coroutines.flow.Flow
 import java.util.UUID
 
 interface UserRepository {
+    fun observeMyProfile(forceRefresh: Boolean = false): Flow<CachedResource<User>> =
+        throw UnsupportedOperationException("observeMyProfile is not implemented")
+
     suspend fun getUserById(userId: UUID): Result<User>
     suspend fun getUserByNickname(nickname: String): Result<User>
     suspend fun searchUsers(query: String): Result<List<User>>

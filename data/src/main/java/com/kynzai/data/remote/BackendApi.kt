@@ -7,7 +7,7 @@ import com.kynzai.data.remote.dto.ErrorMessageDto
 import com.kynzai.data.remote.dto.LoginRequestDto
 import com.kynzai.data.remote.dto.ProfileUpdateRequestDto
 import com.kynzai.data.remote.dto.RegisterRequestDto
-import com.kynzai.data.remote.dto.UserProfileDto
+import com.kynzai.data.remote.dto.UserApiDto
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -56,12 +56,12 @@ class BackendApi @Inject constructor(
             }
         }
 
-    suspend fun getMyProfile(): Result<UserProfileDto> =
+    suspend fun getMyProfile(): Result<UserApiDto> =
         safeCall {
             http.get(apiUrl("/api/profile/me"))
         }
 
-    suspend fun updateMyProfile(body: ProfileUpdateRequestDto): Result<UserProfileDto> =
+    suspend fun updateMyProfile(body: ProfileUpdateRequestDto): Result<UserApiDto> =
         safeCall {
             http.put(apiUrl("/api/profile/me")) {
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
@@ -69,12 +69,12 @@ class BackendApi @Inject constructor(
             }
         }
 
-    suspend fun getAllUsers(): Result<List<UserProfileDto>> =
+    suspend fun getAllUsers(): Result<List<UserApiDto>> =
         safeCall {
             http.get(apiUrl("/api/users"))
         }
 
-    suspend fun getUserById(userId: String): Result<UserProfileDto> =
+    suspend fun getUserById(userId: String): Result<UserApiDto> =
         safeCall {
             http.get(apiUrl("/api/users/$userId"))
         }

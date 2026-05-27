@@ -1,15 +1,29 @@
 package com.kynzai.data.repositories.mock
 
 import com.kynzai.data.mock.FakeDataSource
+import com.kynzai.domain.common.CachedResource
 import com.kynzai.domain.models.User
 import com.kynzai.domain.models.UserProfileUpdate
 import com.kynzai.domain.repositories.UserRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.util.UUID
 import javax.inject.Inject
 
 class MockUserRepository @Inject constructor(
     private val data: FakeDataSource,
 ) : UserRepository {
+    override fun observeMyProfile(forceRefresh: Boolean): Flow<CachedResource<User>> {
+        val user = data.currentUserId?.let { id -> data.users.firstOrNull { it.userId == id } }
+        return flowOf(
+            if (user != null) {
+                CachedResource(data = user)
+            } else {
+                CachedResource(error = IllegalStateException("Unauthorized"))
+            }
+        )
+    }
+
     override suspend fun getUserById(userId: UUID): Result<User> =
         data.users.firstOrNull { it.userId == userId }?.let { Result.success(it) }
             ?: Result.failure(NoSuchElementException("User not found: $userId"))

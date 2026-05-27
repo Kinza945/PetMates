@@ -4,15 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kynzai.domain.models.InviteStatus
 import com.kynzai.domain.models.ResponseStatus
+import com.kynzai.domain.models.User
 import com.kynzai.domain.repositories.InviteRepository
 import com.kynzai.domain.repositories.ProjectRepository
 import com.kynzai.domain.repositories.ResponseRepository
 import com.kynzai.domain.repositories.UserRepository
 import com.kynzai.petmates.session.SessionManager
-import com.kynzai.petmates.ui.common.ScreenState
 import com.kynzai.petmates.ui.common.UiEvent
 import com.kynzai.petmates.ui.mappers.ProjectUi
-import com.kynzai.petmates.ui.mappers.UserUi
 import com.kynzai.petmates.ui.mappers.toUi
 import com.kynzai.petmates.ui.mappers.toUiLabel
 import com.kynzai.petmates.ui.mappers.toUuidOrNull
@@ -22,14 +21,20 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 data class ProfileUiState(
-    val user: UserUi,
-    val myProjects: List<ProjectUi>,
-    val myResponses: List<ProfileResponseUi>,
-    val myInvites: List<ProfileInviteUi>,
-    val sentInvites: List<ProfileSentInviteUi>,
+    val data: User? = null,
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
+    val error: String? = null,
+    val isUnauthorized: Boolean = false,
+    val myProjects: List<ProjectUi> = emptyList(),
+    val myResponses: List<ProfileResponseUi> = emptyList(),
+    val myInvites: List<ProfileInviteUi> = emptyList(),
+    val sentInvites: List<ProfileSentInviteUi> = emptyList(),
 )
 
 data class ProfileResponseUi(
@@ -69,73 +74,45 @@ class ProfileViewModel @Inject constructor(
     private val invites: InviteRepository,
     private val sessionManager: SessionManager,
 ) : ViewModel() {
-    private val _state = MutableStateFlow<ScreenState<ProfileUiState>>(ScreenState.Loading)
+    private val _state = MutableStateFlow(ProfileUiState())
     val state = _state.asStateFlow()
 
     private val _events = MutableSharedFlow<UiEvent>()
     val events = _events.asSharedFlow()
 
-    fun refresh() {
+    private var refreshJob: Job? = null
+
+    fun refresh(force: Boolean = false) {
         val me = sessionManager.state.value.currentUserId
         if (me == null) {
-            // Профиль текущего пользователя — приватный экран, гостю показываем AuthRequiredScreen.
-            _state.value = ScreenState.Unauthorized
+            _state.value = ProfileUiState(isLoading = false, isUnauthorized = true)
             return
         }
 
-        viewModelScope.launch {
-            _state.value = ScreenState.Loading
-            val user = users.getUserById(me).getOrElse {
-                _state.value = ScreenState.Error(it.message ?: "Не удалось загрузить профиль")
-                return@launch
-            }
-            // На mock-этапе собираем агрегированную модель профиля на клиенте.
-            // После появления backend это желательно заменить отдельным endpoint/RPC.
-            val allProjects = projects.getAllProjects().getOrElse {
-                _state.value = ScreenState.Error(it.message ?: "Не удалось загрузить проекты")
-                return@launch
-            }
-            val myProjects = allProjects.filter { it.ownerId == me }
-            val myResponses = buildMyResponses(userId = me)
-            val myInvites = invites.getInvitesByUser(me)
-                .getOrDefault(emptyList())
-                .map { invite ->
-                    val project = allProjects.firstOrNull { it.projectId == invite.projectId }
-                    ProfileInviteUi(
-                        inviteId = invite.inviteId.toString(),
-                        projectId = invite.projectId.toString(),
-                        projectName = project?.name ?: "Неизвестный проект",
-                        role = invite.role,
-                        statusLabel = invite.status.toUiLabel(),
-                        isPending = invite.status == InviteStatus.PENDING,
+        refreshJob?.cancel()
+        refreshJob = viewModelScope.launch {
+            users.observeMyProfile(forceRefresh = force).collectLatest { resource ->
+                val user = resource.data
+                if (user == null) {
+                    _state.value = ProfileUiState(
+                        isLoading = false,
+                        error = resource.error?.message ?: "Не удалось загрузить профиль",
                     )
+                    return@collectLatest
                 }
-            val sentInvites = myProjects.flatMap { project ->
-                invites.getInvitesByProject(project.projectId)
-                    .getOrDefault(emptyList())
-                    .map { invite ->
-                        ProfileSentInviteUi(
-                            inviteId = invite.inviteId.toString(),
-                            projectId = invite.projectId.toString(),
-                            projectName = project.name,
-                            userName = users.getUserById(invite.userId).getOrNull()?.nickname ?: "Unknown",
-                            role = invite.role,
-                            statusLabel = invite.status.toUiLabel(),
-                            date = invite.createdAt?.toString()?.take(10).orEmpty(),
-                            isPending = invite.status == InviteStatus.PENDING,
-                        )
-                    }
-            }.sortedByDescending { it.date }
 
-            _state.value = ScreenState.Content(
-                ProfileUiState(
-                    user = user.toUi(),
-                    myProjects = myProjects.map { it.toUi() },
-                    myResponses = myResponses,
-                    myInvites = myInvites,
-                    sentInvites = sentInvites,
+                val activity = buildProfileActivity(user)
+                _state.value = ProfileUiState(
+                    data = user,
+                    isLoading = false,
+                    isRefreshing = resource.isRefreshing,
+                    error = resource.error?.message,
+                    myProjects = activity.myProjects,
+                    myResponses = activity.myResponses,
+                    myInvites = activity.myInvites,
+                    sentInvites = activity.sentInvites,
                 )
-            )
+            }
         }
     }
 
@@ -145,7 +122,7 @@ class ProfileViewModel @Inject constructor(
             responses.cancelResponse(id)
                 .onSuccess {
                     _events.emit(UiEvent.ShowMessage("Отклик отменён"))
-                    refresh()
+                    refresh(force = true)
                 }
                 .onFailure {
                     _events.emit(UiEvent.ShowMessage(it.message ?: "Не удалось отменить отклик"))
@@ -167,7 +144,7 @@ class ProfileViewModel @Inject constructor(
             invites.cancelInvite(id)
                 .onSuccess {
                     _events.emit(UiEvent.ShowMessage("Приглашение отменено"))
-                    refresh()
+                    refresh(force = true)
                 }
                 .onFailure {
                     _events.emit(UiEvent.ShowMessage(it.message ?: "Не удалось отменить приглашение"))
@@ -181,12 +158,64 @@ class ProfileViewModel @Inject constructor(
             invites.updateInviteStatus(id, status)
                 .onSuccess {
                     _events.emit(UiEvent.ShowMessage(message))
-                    refresh()
+                    refresh(force = true)
                 }
                 .onFailure {
                     _events.emit(UiEvent.ShowMessage(it.message ?: "Не удалось обновить приглашение"))
                 }
         }
+    }
+
+    private data class ProfileActivity(
+        val myProjects: List<ProjectUi>,
+        val myResponses: List<ProfileResponseUi>,
+        val myInvites: List<ProfileInviteUi>,
+        val sentInvites: List<ProfileSentInviteUi>,
+    )
+
+    private suspend fun buildProfileActivity(user: User): ProfileActivity {
+        val allProjects = projects.getAllProjects().getOrElse {
+            _events.emit(UiEvent.ShowMessage(it.message ?: "Не удалось загрузить проекты"))
+            emptyList()
+        }
+        val myProjects = allProjects.filter { it.ownerId == user.userId }
+        val myResponses = buildMyResponses(userId = user.userId)
+        val myInvites = invites.getInvitesByUser(user.userId)
+            .getOrDefault(emptyList())
+            .map { invite ->
+                val project = allProjects.firstOrNull { it.projectId == invite.projectId }
+                ProfileInviteUi(
+                    inviteId = invite.inviteId.toString(),
+                    projectId = invite.projectId.toString(),
+                    projectName = project?.name ?: "Неизвестный проект",
+                    role = invite.role,
+                    statusLabel = invite.status.toUiLabel(),
+                    isPending = invite.status == InviteStatus.PENDING,
+                )
+            }
+        val sentInvites = myProjects.flatMap { project ->
+            invites.getInvitesByProject(project.projectId)
+                .getOrDefault(emptyList())
+                .map { invite ->
+                    ProfileSentInviteUi(
+                        inviteId = invite.inviteId.toString(),
+                        projectId = invite.projectId.toString(),
+                        projectName = project.name,
+                        userName = users.getUserById(invite.userId).getOrNull()?.nickname ?: "Unknown",
+                        role = invite.role,
+                        statusLabel = invite.status.toUiLabel(),
+                        date = invite.createdAt?.toString()?.take(10).orEmpty(),
+                        isPending = invite.status == InviteStatus.PENDING,
+                    )
+                }
+        }.sortedByDescending { it.date }
+
+        return ProfileActivity(
+            myProjects = myProjects.map { it.toUi() },
+            myResponses = myResponses,
+            myInvites = myInvites,
+            sentInvites = sentInvites,
+        )
     }
 
     private suspend fun buildMyResponses(userId: java.util.UUID): List<ProfileResponseUi> {

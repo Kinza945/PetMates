@@ -37,8 +37,11 @@ class UserProfileViewModel @Inject constructor(
     val events = _events.asSharedFlow()
 
     private var nickname: String? = null
+    private val cacheTtlMs = 60_000L
+    private var lastLoadedAtMs: Long = 0L
+    private var lastLoadedNickname: String? = null
 
-    fun load(nickname: String?) {
+    fun load(nickname: String?, force: Boolean = false) {
         this.nickname = nickname
         val nick = nickname?.trim().orEmpty()
         if (nick.isBlank()) {
@@ -47,7 +50,14 @@ class UserProfileViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _state.value = ScreenState.Loading
+            val now = System.currentTimeMillis()
+            val hasContent = _state.value is ScreenState.Content
+            if (!force && hasContent && lastLoadedNickname == nick && now - lastLoadedAtMs <= cacheTtlMs) {
+                return@launch
+            }
+            if (!hasContent) {
+                _state.value = ScreenState.Loading
+            }
             val user = users.getUserByNickname(nick).getOrElse {
                 _state.value = ScreenState.Error(it.message ?: "Пользователь не найден")
                 return@launch
@@ -65,10 +75,12 @@ class UserProfileViewModel @Inject constructor(
                     isAuthorized = me != null,
                 )
             )
+            lastLoadedAtMs = now
+            lastLoadedNickname = nick
         }
     }
 
-    fun retry() = load(nickname)
+    fun retry() = load(nickname, force = true)
 
     fun onInviteClick() {
         val current = (_state.value as? ScreenState.Content)?.value ?: return

@@ -81,9 +81,10 @@ object DataRepositoryModule {
     @Singleton
     fun provideUserRepository(
         api: SupabaseRestApi,
+        backendApi: BackendApi,
         fake: FakeDataSource,
     ): UserRepository =
-        if (DataBuildConfig.USE_MOCKS) MockUserRepository(fake) else UserRepositoryImpl(api)
+        if (DataBuildConfig.USE_MOCKS) MockUserRepository(fake) else UserRepositoryImpl(api, backendApi)
 
     @Provides
     @Singleton
