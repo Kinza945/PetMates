@@ -1,33 +1,41 @@
 package com.kynzai.data.remote.mapper
 
 import com.kynzai.data.remote.dto.*
-import com.kynzai.data.remote.toContactWireList
-import com.kynzai.data.remote.toStringList
 import com.kynzai.domain.models.*
 import kotlinx.serialization.builtins.ListSerializer
 import java.time.Instant
 import java.util.UUID
 
-internal fun UserProfileDto.toDomain(): User =
-    User(
-        userId = UUID.fromString(userId),
-        nickname = nickname?.takeIf { it.isNotBlank() } ?: "user",
+internal fun UserApiDto.toDomain(): User {
+    val normalizedUsername = username?.takeIf { it.isNotBlank() }
+    return User(
+        userId = UUID.fromString(id),
+        nickname = normalizedUsername ?: "user",
+        username = normalizedUsername,
+        email = email,
         avatarUrl = avatarUrl,
-        realName = realName,
         age = age,
         gender = gender.toGender(),
         country = country,
         city = city,
         workplace = workplace,
-        profileRole = profileRole,
-        systemRole = systemRole.toSystemRole(),
+        profileRole = status,
         description = description,
-        hardSkills = hardSkills.toStringList(),
-        softSkills = softSkills.toStringList(),
-        contacts = contacts.toContactWireList().map { Contact(name = it.name, link = it.link) },
-        lastOnlineAt = lastOnlineAt?.let(::parseInstantOrNull),
-        createdAt = createdAt?.let(::parseInstantOrNull),
+        hardSkills = hardSkills.orEmpty(),
+        softSkills = softSkills.orEmpty(),
+        contacts = buildList {
+            telegram?.takeIf { it.isNotBlank() }?.let { add(Contact(name = "Telegram", link = it)) }
+            github?.takeIf { it.isNotBlank() }?.let { add(Contact(name = "GitHub", link = it)) }
+            vk?.takeIf { it.isNotBlank() }?.let { add(Contact(name = "VK", link = it)) }
+            twitch?.takeIf { it.isNotBlank() }?.let { add(Contact(name = "Twitch", link = it)) }
+        },
+        status = status,
+        telegram = telegram,
+        github = github,
+        vk = vk,
+        twitch = twitch,
     )
+}
 
 internal fun UserProfileUpdate.toProfileUpdateDto(): ProfileUpdateRequestDto {
     val json = com.kynzai.data.network.BackendHttpClientFactory.jsonCodec()

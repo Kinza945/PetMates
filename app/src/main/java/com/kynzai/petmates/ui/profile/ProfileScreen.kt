@@ -34,9 +34,11 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -70,16 +72,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.kynzai.domain.models.User
 import com.kynzai.petmates.ui.common.AuthRequiredScreen
 import com.kynzai.petmates.ui.common.ErrorStateScreen
-import com.kynzai.petmates.ui.common.LoadingStateScreen
-import com.kynzai.petmates.ui.common.ScreenState
 import com.kynzai.petmates.ui.common.ServerUnavailableScreen
 import com.kynzai.petmates.ui.common.UiEvent
 import com.kynzai.petmates.ui.common.isServerUnavailableMessage
-import com.kynzai.petmates.ui.mappers.ContactUi
 import com.kynzai.petmates.ui.mappers.ProjectUi
-import com.kynzai.petmates.ui.mappers.UserUi
 import com.kynzai.petmates.ui.theme.PetMatesPrimary
 import com.kynzai.petmates.ui.theme.PetMatesSurface
 import com.kynzai.petmates.ui.theme.PetMatesTextPrimary
@@ -127,33 +126,33 @@ fun ProfileScreen(
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
-    when (val s = state) {
-        ScreenState.Loading -> {
-            LoadingStateScreen(message = "Загружаем профиль...")
-            return
+    if (state.isUnauthorized) {
+        AuthRequiredScreen(
+            message = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
+            onAuthClick = onAuthRequested,
+        )
+        return
+    }
+
+    if (state.isLoading && state.data == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = PetMatesPrimary)
         }
+        return
+    }
 
-        ScreenState.Unauthorized -> {
-            AuthRequiredScreen(
-                message = "Войдите в аккаунт, чтобы открыть профиль и ваши проекты.",
-                onAuthClick = onAuthRequested,
-            )
-            return
+    val error = state.error
+    val user = state.data
+    if (user == null) {
+        if (error?.isServerUnavailableMessage() == true) {
+            ServerUnavailableScreen(onRetryClick = { vm.refresh(force = true) })
+        } else {
+            ErrorStateScreen(message = error ?: "Не удалось загрузить профиль", onRetryClick = { vm.refresh(force = true) })
         }
+        return
+    }
 
-        is ScreenState.Error -> {
-            if (s.message.isServerUnavailableMessage()) {
-                ServerUnavailableScreen(onRetryClick = vm::refresh)
-            } else {
-                ErrorStateScreen(message = s.message, onRetryClick = vm::refresh)
-            }
-            return
-        }
-
-        is ScreenState.Content -> {
-            val profile = s.value
-            val user = profile.user
-
+    Box(modifier = Modifier.fillMaxSize().background(PetMatesSurface)) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -178,18 +177,18 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = user.nickname,
+                text = user.displayName(),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = PetMatesTextPrimary
             )
             Text(
-                text = user.realName.ifBlank { "Имя не указано" },
+                text = user.email?.takeIf { it.isNotBlank() } ?: "Почта не указана",
                 fontSize = 14.sp,
                 color = PetMatesTextSecondary
             )
             Text(
-                text = user.profileRole.ifBlank { "Роль не указана" },
+                text = user.formattedStatus(),
                 fontSize = 16.sp,
                 color = PetMatesPrimary,
                 modifier = Modifier.padding(top = 8.dp)
@@ -200,8 +199,7 @@ fun ProfileScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                listOf(user.country, user.city, user.workplace)
-                    .filter { it.isNotBlank() }
+                listOfNotNull(user.formattedCountry(), user.formattedCity(), user.formattedWorkplace())
                     .forEach { OutlinedInfoChip(it) }
             }
 
@@ -212,7 +210,12 @@ fun ProfileScreen(
             ) {
                 Text(text = "• онлайн", color = OnlineGreen, fontSize = 12.sp)
                 Text(
-                    text = listOf(user.age, user.city, user.workplace).filter { it.isNotBlank() }.joinToString(" • ", prefix = "  "),
+                    text = listOfNotNull(
+                        user.formattedAge(),
+                        user.formattedGender(),
+                        user.formattedCity(),
+                        user.formattedWorkplace(),
+                    ).joinToString(" • ", prefix = "  "),
                     color = PetMatesTextSecondary,
                     fontSize = 12.sp,
                     maxLines = 1,
@@ -290,18 +293,15 @@ fun ProfileScreen(
             when (ProfileTab.entries.getOrNull(selectedTab) ?: ProfileTab.Info) {
                 ProfileTab.Info -> InfoTab(
                     modifier = Modifier.fillMaxSize(),
-                    description = user.description,
-                    contacts = user.contacts,
-                    hardSkills = user.hardSkills,
-                    softSkills = user.softSkills,
+                    user = user,
                 )
 
                 ProfileTab.Activity -> ActivityTab(
                     modifier = Modifier.fillMaxSize(),
-                    myProjects = profile.myProjects,
-                    myResponses = profile.myResponses,
-                    myInvites = profile.myInvites,
-                    sentInvites = profile.sentInvites,
+                    myProjects = state.myProjects,
+                    myResponses = state.myResponses,
+                    myInvites = state.myInvites,
+                    sentInvites = state.sentInvites,
                     onOpenProject = onOpenProject,
                     onEditProject = onEditProject,
                     onCreateVacancy = onCreateVacancy,
@@ -314,7 +314,7 @@ fun ProfileScreen(
 
                 ProfileTab.Notifications -> NotificationsRoute(modifier = Modifier.fillMaxSize())
                 ProfileTab.Settings -> SettingsTab(
-                    accountName = user.nickname,
+                    accountName = user.displayName(),
                     modifier = Modifier.fillMaxSize(),
                     onEditProfileClick = onEditProfileClick,
                     onLogoutComplete = onLogoutComplete,
@@ -322,6 +322,12 @@ fun ProfileScreen(
             }
         }
     }
+        if (state.isRefreshing) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                color = PetMatesPrimary,
+                trackColor = PetMatesPrimary.copy(alpha = 0.12f),
+            )
         }
     }
 }
@@ -351,31 +357,40 @@ private fun PlaceholderTab(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun InfoTab(
-    description: String,
-    contacts: List<ContactUi>,
-    hardSkills: List<String>,
-    softSkills: List<String>,
+    user: User,
     modifier: Modifier = Modifier,
 ) {
     val tagBg = PetMatesPrimary.copy(alpha = 0.25f)
+    val contacts = user.profileContacts()
 
     Column(
         modifier = modifier.fillMaxWidth().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        SectionTitle("Основное:")
+        ProfileDetailsCard(user = user)
+
         SectionTitle("Описание:")
-        Text(text = description, color = PetMatesTextPrimary, fontSize = 14.sp)
+        Text(
+            text = user.description?.takeIf { it.isNotBlank() } ?: "Описание не указано.",
+            color = PetMatesTextPrimary,
+            fontSize = 14.sp,
+        )
 
         SectionTitle("Для связи:")
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            contacts.forEach { contact ->
+        if (contacts.isEmpty()) {
+            Text(text = "Контакты не указаны.", color = PetMatesTextSecondary, fontSize = 14.sp)
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                contacts.forEach { (name, link) ->
                 Text(
-                    text = "${contact.name}: ${contact.link}",
+                    text = "$name: $link",
                     color = PetMatesTextPrimary,
                     fontSize = 14.sp,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                }
             }
         }
 
@@ -384,7 +399,11 @@ private fun InfoTab(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            hardSkills.forEach { Chip(text = it, background = tagBg) }
+            if (user.hardSkills.isEmpty()) {
+                Text(text = "Не указаны.", color = PetMatesTextSecondary, fontSize = 14.sp)
+            } else {
+                user.hardSkills.forEach { Chip(text = it, background = tagBg) }
+            }
         }
 
         SectionTitle("soft-skills:")
@@ -392,10 +411,48 @@ private fun InfoTab(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            softSkills.forEach { Chip(text = it, background = tagBg) }
+            if (user.softSkills.isEmpty()) {
+                Text(text = "Не указаны.", color = PetMatesTextSecondary, fontSize = 14.sp)
+            } else {
+                user.softSkills.forEach { Chip(text = it, background = tagBg) }
+            }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun ProfileDetailsCard(user: User) {
+    ActivityCard {
+        ProfileDetailRow(label = "Страна", value = user.formattedCountry())
+        ProfileDetailRow(label = "Город", value = user.formattedCity())
+        ProfileDetailRow(label = "Учёба / работа", value = user.formattedWorkplace())
+        ProfileDetailRow(label = "Возраст", value = user.formattedAge())
+        ProfileDetailRow(label = "Пол", value = user.formattedGender())
+        ProfileDetailRow(label = "Статус", value = user.status)
+    }
+}
+
+@Composable
+private fun ProfileDetailRow(label: String, value: String?) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = label,
+            color = PetMatesTextSecondary,
+            fontSize = 13.sp,
+            modifier = Modifier.weight(0.42f),
+        )
+        Text(
+            text = value?.takeIf { it.isNotBlank() } ?: "Не указано",
+            color = PetMatesTextPrimary,
+            fontSize = 14.sp,
+            modifier = Modifier.weight(0.58f),
+        )
     }
 }
 

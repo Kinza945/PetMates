@@ -28,19 +28,51 @@ class UsersViewModel @Inject constructor(
     private val _state = MutableStateFlow<LoadState<List<UserCardUi>>>(LoadState.Loading)
     val state = _state.asStateFlow()
 
-    fun load(query: String) {
+    private data class CacheEntry(
+        val value: List<UserCardUi>,
+        val loadedAtMs: Long,
+    )
+
+    private val cache = mutableMapOf<String, CacheEntry>()
+    private val cacheTtlMs = 60_000L
+
+    fun load(query: String, force: Boolean = false) {
         viewModelScope.launch {
-            _state.value = LoadState.Loading
+            val key = query.trim()
+            val now = System.currentTimeMillis()
+            val cached = cache[key]
+
+            if (!force && cached != null && now - cached.loadedAtMs <= cacheTtlMs) {
+                _state.value = LoadState.Data(cached.value)
+                return@launch
+            }
+
+            if (cached == null) {
+                _state.value = LoadState.Loading
+            } else {
+                _state.value = LoadState.Data(cached.value)
+            }
+
             val res = searchUsers(
                 UserSearchQuery(
-                    q = query.ifBlank { null },
+                    q = key.ifBlank { null },
                     page = PageRequest(limit = 50),
                 )
             )
 
             when (res) {
-                is AppResult.Success -> _state.value = LoadState.Data(res.data.items.map { it.toCard() })
-                is AppResult.Error -> _state.value = res.toLoadState()
+                is AppResult.Success -> {
+                    val cards = res.data.items.map { it.toCard() }
+                    cache[key] = CacheEntry(value = cards, loadedAtMs = now)
+                    _state.value = LoadState.Data(cards)
+                }
+
+                is AppResult.Error -> {
+                    // Если есть кеш — не "проваливаем" UI в ошибку, просто оставляем старые данные.
+                    if (cached == null) {
+                        _state.value = res.toLoadState()
+                    }
+                }
             }
         }
     }

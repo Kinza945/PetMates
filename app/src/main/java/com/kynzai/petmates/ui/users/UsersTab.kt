@@ -74,7 +74,7 @@ fun UsersRoute(
         isLoading = state is LoadState.Loading,
         errorMessage = (state as? LoadState.Error)?.error?.toUiMessage(),
         isServerUnavailable = (state as? LoadState.Error)?.error?.isServerUnavailable() == true,
-        onRetryClick = { vm.load(query) },
+        onRetryClick = { vm.load(query, force = true) },
         onUserClick = onUserClick,
     )
 }
