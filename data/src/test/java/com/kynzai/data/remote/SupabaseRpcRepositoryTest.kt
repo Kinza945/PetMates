@@ -1,5 +1,6 @@
 package com.kynzai.data.remote
 
+import com.kynzai.data.network.BackendConfig
 import com.kynzai.data.network.SupabaseConfig
 import com.kynzai.data.repositories.InviteRepositoryImpl
 import com.kynzai.data.repositories.ProjectRepositoryImpl
@@ -84,7 +85,7 @@ class SupabaseRpcRepositoryTest {
     @Test
     fun updateProfile_uses_updateMyProfileRpc() = runBlocking {
         val calls = mutableListOf<String>()
-        val repo = UserRepositoryImpl(api(calls, userJson()))
+        val repo = UserRepositoryImpl(api(calls, userJson()), disabledBackendApi())
 
         repo.updateProfile(
             UserProfileUpdate(
@@ -115,6 +116,19 @@ class SupabaseRpcRepositoryTest {
                 anonKey = "anon-key",
             ),
         )
+
+    private fun disabledBackendApi(): BackendApi {
+        val client = HttpClient(
+            MockEngine {
+                error("Backend API must stay disabled in this Supabase RPC test")
+            }
+        )
+        return BackendApi(
+            http = client,
+            authHttp = client,
+            config = BackendConfig(baseUrl = ""),
+        )
+    }
 
     private fun responseJson(status: String = "pending"): String =
         """

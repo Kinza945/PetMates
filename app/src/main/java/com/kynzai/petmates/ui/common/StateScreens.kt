@@ -260,9 +260,10 @@ fun DomainError.isServerUnavailable(): Boolean =
 
 fun String.isServerUnavailableMessage(): Boolean =
     contains("SUPABASE_URL is empty", ignoreCase = true) ||
+        contains("SUPABASE_ANON_KEY is empty", ignoreCase = true) ||
         contains("API_BASE_URL is empty", ignoreCase = true) ||
-        contains("server", ignoreCase = true) ||
         contains("network", ignoreCase = true) ||
         contains("timeout", ignoreCase = true) ||
         contains("failed to connect", ignoreCase = true) ||
-        contains("Supabase", ignoreCase = true)
+        contains("unable to resolve host", ignoreCase = true) ||
+        contains("connection refused", ignoreCase = true)

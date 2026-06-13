@@ -21,7 +21,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -91,28 +90,32 @@ class ProfileViewModel @Inject constructor(
 
         refreshJob?.cancel()
         refreshJob = viewModelScope.launch {
-            users.observeMyProfile(forceRefresh = force).collectLatest { resource ->
-                val user = resource.data
-                if (user == null) {
+            /*
+             * Текущий профиль грузим по id из сессии, а не через /api/profile/me.
+             * Сейчас backend на 78.17.198.221 отдаёт сайт, а не JSON API, поэтому
+             * real-репозиторий сможет прозрачно откатиться на Supabase users.
+             * Когда backend даст /api/profile/me, этот обход можно убрать.
+             */
+            users.getUserById(me)
+                .onSuccess { user ->
+                    val activity = buildProfileActivity(user)
+                    _state.value = ProfileUiState(
+                        data = user,
+                        isLoading = false,
+                        isRefreshing = false,
+                        error = null,
+                        myProjects = activity.myProjects,
+                        myResponses = activity.myResponses,
+                        myInvites = activity.myInvites,
+                        sentInvites = activity.sentInvites,
+                    )
+                }
+                .onFailure { error ->
                     _state.value = ProfileUiState(
                         isLoading = false,
-                        error = resource.error?.message ?: "Не удалось загрузить профиль",
+                        error = error.message ?: "Не удалось загрузить профиль",
                     )
-                    return@collectLatest
                 }
-
-                val activity = buildProfileActivity(user)
-                _state.value = ProfileUiState(
-                    data = user,
-                    isLoading = false,
-                    isRefreshing = resource.isRefreshing,
-                    error = resource.error?.message,
-                    myProjects = activity.myProjects,
-                    myResponses = activity.myResponses,
-                    myInvites = activity.myInvites,
-                    sentInvites = activity.sentInvites,
-                )
-            }
         }
     }
 
