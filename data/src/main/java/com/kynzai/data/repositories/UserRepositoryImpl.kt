@@ -137,14 +137,14 @@ class UserRepositoryImpl @Inject constructor(
                 profileLastLoadedAtMs = System.currentTimeMillis()
                 profileCache.value = CachedResource(data = user)
             }
-            .recoverCatching {
-                api.postRpcJson(
-            functionName = "update_my_profile",
-            bodyJson = update.toJsonBody(),
-                ).getOrThrow().let { raw ->
-                    UserDto.fromJson(objectFromRpc(raw)).toDomain()
-                }
-            }
+//            .recoverCatching {
+//                api.postRpcJson(
+//            functionName = "update_my_profile",
+//            bodyJson = update.toJsonBody(),
+//                ).getOrThrow().let { raw ->
+//                    UserDto.fromJson(objectFromRpc(raw)).toDomain()
+//                }
+//            }
 
     override suspend fun deleteAccount(): Result<Unit> =
         api.postRpcJson(

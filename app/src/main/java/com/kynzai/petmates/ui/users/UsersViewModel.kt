@@ -19,6 +19,7 @@ data class UserCardUi(
     val nickname: String,
     val role: String,
     val skills: List<String>,
+    val avatarUrl: String?,
 )
 
 @HiltViewModel
@@ -85,6 +86,7 @@ class UsersViewModel @Inject constructor(
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
                 .take(6),
+            avatarUrl = avatarUrl,
         )
 }
 

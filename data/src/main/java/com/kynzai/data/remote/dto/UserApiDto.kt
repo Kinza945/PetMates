@@ -1,17 +1,24 @@
 package com.kynzai.data.remote.dto
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.JsonNames
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class UserApiDto(
     @SerialName("id")
-    val id: String,
+    val id: String? = null,
+    @SerialName("user_id")
+    val userId: String? = null,
     @SerialName("username")
+    @JsonNames("nickname")
     val username: String? = null,
     @SerialName("email")
     val email: String? = null,
     @SerialName("avatarUrl")
+    @JsonNames("avatar_url", "avatar", "photoUrl", "photo_url", "imageUrl", "image_url", "picture")
     val avatarUrl: String? = null,
     @SerialName("description")
     val description: String? = null,
@@ -34,10 +41,13 @@ data class UserApiDto(
     @SerialName("twitch")
     val twitch: String? = null,
     @SerialName("hardSkills")
+    @JsonNames("hard_skills")
     val hardSkills: List<String>? = null,
     @SerialName("softSkills")
+    @JsonNames("soft_skills")
     val softSkills: List<String>? = null,
     @SerialName("status")
+    @JsonNames("profileRole", "profile_role")
     val status: String? = null,
 )
 

@@ -8,8 +8,9 @@ import java.util.UUID
 
 internal fun UserApiDto.toDomain(): User {
     val normalizedUsername = username?.takeIf { it.isNotBlank() }
+    val normalizedId = id ?: userId ?: error("User response does not contain id")
     return User(
-        userId = UUID.fromString(id),
+        userId = UUID.fromString(normalizedId),
         nickname = normalizedUsername ?: "user",
         username = normalizedUsername,
         email = email,

@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -75,6 +74,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.kynzai.domain.models.User
 import com.kynzai.petmates.ui.common.AuthRequiredScreen
 import com.kynzai.petmates.ui.common.ErrorStateScreen
+import com.kynzai.petmates.ui.common.RemoteAvatar
 import com.kynzai.petmates.ui.common.ServerUnavailableScreen
 import com.kynzai.petmates.ui.common.UiEvent
 import com.kynzai.petmates.ui.common.isServerUnavailableMessage
@@ -153,175 +153,174 @@ fun ProfileScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize().background(PetMatesSurface)) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(PetMatesSurface)
-            .verticalScroll(rememberScrollState())
-    ) {
-        // Шапка профиля: теперь данные приходят из ProfileViewModel, а не из hardcoded макета.
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .background(PetMatesSurface)
+                .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Box(
+            // Шапка профиля: теперь данные приходят из ProfileViewModel, а не из hardcoded макета.
+            Column(
                 modifier = Modifier
-                    .size(100.dp)
-                    .background(Color.LightGray, CircleShape)
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                RemoteAvatar(
+                    avatarUrl = user.avatarUrl,
+                    size = 100.dp,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = user.displayName(),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PetMatesTextPrimary
+                )
+                Text(
+                    text = user.email?.takeIf { it.isNotBlank() } ?: "Почта не указана",
+                    fontSize = 14.sp,
+                    color = PetMatesTextSecondary
+                )
+                Text(
+                    text = user.formattedStatus(),
+                    fontSize = 16.sp,
+                    color = PetMatesPrimary,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                FlowRow(
+                    modifier = Modifier.padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    listOfNotNull(user.formattedCountry(), user.formattedCity(), user.formattedWorkplace())
+                        .forEach { OutlinedInfoChip(it) }
+                }
+
+                Row(
+                    modifier = Modifier.padding(top = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(text = "• онлайн", color = OnlineGreen, fontSize = 12.sp)
+                    Text(
+                        text = listOfNotNull(
+                            user.formattedAge(),
+                            user.formattedGender(),
+                            user.formattedCity(),
+                            user.formattedWorkplace(),
+                        ).joinToString(" • ", prefix = "  "),
+                        color = PetMatesTextSecondary,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = user.displayName(),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = PetMatesTextPrimary
-            )
-            Text(
-                text = user.email?.takeIf { it.isNotBlank() } ?: "Почта не указана",
-                fontSize = 14.sp,
-                color = PetMatesTextSecondary
-            )
-            Text(
-                text = user.formattedStatus(),
-                fontSize = 16.sp,
-                color = PetMatesPrimary,
-                modifier = Modifier.padding(top = 8.dp)
-            )
-
-            FlowRow(
-                modifier = Modifier.padding(top = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                listOfNotNull(user.formattedCountry(), user.formattedCity(), user.formattedWorkplace())
-                    .forEach { OutlinedInfoChip(it) }
-            }
-
             Row(
-                modifier = Modifier.padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Text(text = "• онлайн", color = OnlineGreen, fontSize = 12.sp)
-                Text(
-                    text = listOfNotNull(
-                        user.formattedAge(),
-                        user.formattedGender(),
-                        user.formattedCity(),
-                        user.formattedWorkplace(),
-                    ).joinToString(" • ", prefix = "  "),
-                    color = PetMatesTextSecondary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Button(
+                    onClick = onCreateProjectClick,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+                ) {
+                    Text(text = "Создать проект", fontWeight = FontWeight.Bold)
+                }
+                OutlinedButton(
+                    onClick = onEditProfileClick,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = PetMatesPrimary)
+                ) {
+                    Text(text = "Редактировать", fontWeight = FontWeight.Bold)
+                }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Button(
-                onClick = onCreateProjectClick,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = PetMatesPrimary, contentColor = Color.White)
+            ScrollableTabRow(
+                selectedTabIndex = safeTabIndex,
+                containerColor = PetMatesSurface,
+                contentColor = PetMatesPrimary,
+                edgePadding = 16.dp,
             ) {
-                Text(text = "Создать проект", fontWeight = FontWeight.Bold)
-            }
-            OutlinedButton(
-                onClick = onEditProfileClick,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = PetMatesPrimary)
-            ) {
-                Text(text = "Редактировать", fontWeight = FontWeight.Bold)
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ScrollableTabRow(
-            selectedTabIndex = safeTabIndex,
-            containerColor = PetMatesSurface,
-            contentColor = PetMatesPrimary,
-            edgePadding = 16.dp,
-        ) {
-            Tab(
-                selected = selectedTab == ProfileTab.Info.ordinal,
-                onClick = { selectedTab = ProfileTab.Info.ordinal },
-                text = { Text("Информация") },
-                selectedContentColor = PetMatesPrimary,
-                unselectedContentColor = PetMatesTextSecondary,
-            )
-            Tab(
-                selected = selectedTab == ProfileTab.Activity.ordinal,
-                onClick = { selectedTab = ProfileTab.Activity.ordinal },
-                text = { Text("Активность") },
-                selectedContentColor = PetMatesPrimary,
-                unselectedContentColor = PetMatesTextSecondary,
-            )
-            Tab(
-                selected = selectedTab == ProfileTab.Notifications.ordinal,
-                onClick = { selectedTab = ProfileTab.Notifications.ordinal },
-                text = { Text("Уведомления") },
-                selectedContentColor = PetMatesPrimary,
-                unselectedContentColor = PetMatesTextSecondary,
-            )
-            Tab(
-                selected = selectedTab == ProfileTab.Settings.ordinal,
-                onClick = { selectedTab = ProfileTab.Settings.ordinal },
-                text = { Text("Настройки") },
-                selectedContentColor = PetMatesPrimary,
-                unselectedContentColor = PetMatesTextSecondary,
-            )
-        }
-
-        // Контент вкладок должен иметь ограниченную высоту, иначе Compose падает на вложенных scroll-контейнерах.
-        Box(modifier = Modifier.fillMaxWidth()) {
-            when (ProfileTab.entries.getOrNull(selectedTab) ?: ProfileTab.Info) {
-                ProfileTab.Info -> InfoTab(
-                    modifier = Modifier.fillMaxSize(),
-                    user = user,
+                Tab(
+                    selected = selectedTab == ProfileTab.Info.ordinal,
+                    onClick = { selectedTab = ProfileTab.Info.ordinal },
+                    text = { Text("Информация") },
+                    selectedContentColor = PetMatesPrimary,
+                    unselectedContentColor = PetMatesTextSecondary,
                 )
-
-                ProfileTab.Activity -> ActivityTab(
-                    modifier = Modifier.fillMaxSize(),
-                    myProjects = state.myProjects,
-                    myResponses = state.myResponses,
-                    myInvites = state.myInvites,
-                    sentInvites = state.sentInvites,
-                    onOpenProject = onOpenProject,
-                    onEditProject = onEditProject,
-                    onCreateVacancy = onCreateVacancy,
-                    onOpenVacancy = onOpenVacancy,
-                    onCancelResponse = vm::cancelResponse,
-                    onAcceptInvite = vm::acceptInvite,
-                    onDeclineInvite = vm::declineInvite,
-                    onCancelSentInvite = vm::cancelSentInvite,
+                Tab(
+                    selected = selectedTab == ProfileTab.Activity.ordinal,
+                    onClick = { selectedTab = ProfileTab.Activity.ordinal },
+                    text = { Text("Активность") },
+                    selectedContentColor = PetMatesPrimary,
+                    unselectedContentColor = PetMatesTextSecondary,
                 )
-
-                ProfileTab.Notifications -> NotificationsRoute(modifier = Modifier.fillMaxSize())
-                ProfileTab.Settings -> SettingsTab(
-                    accountName = user.displayName(),
-                    modifier = Modifier.fillMaxSize(),
-                    onEditProfileClick = onEditProfileClick,
-                    onLogoutComplete = onLogoutComplete,
+                Tab(
+                    selected = selectedTab == ProfileTab.Notifications.ordinal,
+                    onClick = { selectedTab = ProfileTab.Notifications.ordinal },
+                    text = { Text("Уведомления") },
+                    selectedContentColor = PetMatesPrimary,
+                    unselectedContentColor = PetMatesTextSecondary,
+                )
+                Tab(
+                    selected = selectedTab == ProfileTab.Settings.ordinal,
+                    onClick = { selectedTab = ProfileTab.Settings.ordinal },
+                    text = { Text("Настройки") },
+                    selectedContentColor = PetMatesPrimary,
+                    unselectedContentColor = PetMatesTextSecondary,
                 )
             }
+
+            // Контент вкладок должен иметь ограниченную высоту, иначе Compose падает на вложенных scroll-контейнерах.
+            Box(modifier = Modifier.fillMaxWidth()) {
+                when (ProfileTab.entries.getOrNull(selectedTab) ?: ProfileTab.Info) {
+                    ProfileTab.Info -> InfoTab(
+                        modifier = Modifier.fillMaxSize(),
+                        user = user,
+                    )
+
+                    ProfileTab.Activity -> ActivityTab(
+                        modifier = Modifier.fillMaxSize(),
+                        myProjects = state.myProjects,
+                        myResponses = state.myResponses,
+                        myInvites = state.myInvites,
+                        sentInvites = state.sentInvites,
+                        onOpenProject = onOpenProject,
+                        onEditProject = onEditProject,
+                        onCreateVacancy = onCreateVacancy,
+                        onOpenVacancy = onOpenVacancy,
+                        onCancelResponse = vm::cancelResponse,
+                        onAcceptInvite = vm::acceptInvite,
+                        onDeclineInvite = vm::declineInvite,
+                        onCancelSentInvite = vm::cancelSentInvite,
+                    )
+
+                    ProfileTab.Notifications -> NotificationsRoute(modifier = Modifier.fillMaxSize())
+                    ProfileTab.Settings -> SettingsTab(
+                        accountName = user.displayName(),
+                        modifier = Modifier.fillMaxSize(),
+                        onEditProfileClick = onEditProfileClick,
+                        onLogoutComplete = onLogoutComplete,
+                    )
+                }
+            }
         }
-    }
         if (state.isRefreshing) {
             LinearProgressIndicator(
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
@@ -383,13 +382,13 @@ private fun InfoTab(
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 contacts.forEach { (name, link) ->
-                Text(
-                    text = "$name: $link",
-                    color = PetMatesTextPrimary,
-                    fontSize = 14.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                    Text(
+                        text = "$name: $link",
+                        color = PetMatesTextPrimary,
+                        fontSize = 14.sp,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
@@ -676,13 +675,13 @@ fun SettingsTab(
             HorizontalDivider()
             SettingsActionRow(
                 title = "Сменить почту",
-                subtitle = "Mock-сценарий до подключения Auth API",
+                subtitle = "Обновление email будет доступно позже",
                 onClick = vm::changeEmail,
             )
             HorizontalDivider()
             SettingsActionRow(
                 title = "Сменить пароль",
-                subtitle = "Mock-сценарий до подключения Auth API",
+                subtitle = "Обновление пароля будет доступно позже",
                 onClick = vm::changePassword,
             )
         }
@@ -713,7 +712,7 @@ fun SettingsTab(
         SettingsCard(title = "Безопасность") {
             SettingsActionRow(
                 title = "Выйти из аккаунта",
-                subtitle = "Завершить текущую mock-сессию",
+                subtitle = "Завершить текущую сессию",
                 titleColor = Danger,
                 onClick = { showLogoutDialog = true },
             )
@@ -721,7 +720,7 @@ fun SettingsTab(
 
         SettingsCard(title = "Опасная зона", titleColor = Danger) {
             Text(
-                text = "Удаление аккаунта пока работает как mock-заглушка. После подключения API здесь будет подтверждение и серверное удаление.",
+                text = "Удаление аккаунта необратимо. Перед продолжением проверьте имя аккаунта и код подтверждения.",
                 color = PetMatesTextSecondary,
                 fontSize = 13.sp,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
@@ -840,7 +839,7 @@ private fun LogoutDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Выйти из аккаунта?", fontWeight = FontWeight.Bold) },
-        text = { Text("Текущая mock-сессия будет очищена, и вы вернётесь на экран авторизации.") },
+        text = { Text("Текущая сессия будет завершена, и вы вернётесь на экран авторизации.") },
         confirmButton = {
             Button(
                 onClick = onConfirm,
@@ -952,7 +951,7 @@ private fun DeleteAccountDialog(
                         .padding(12.dp)
                 ) {
                     Text(
-                        text = "Удаление пока не реализовано (UI-заглушка).",
+                        text = "После подтверждения аккаунт будет удалён.",
                         color = Danger,
                         fontSize = 12.sp
                     )
